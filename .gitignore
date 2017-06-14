@@ -1,0 +1,7 @@
+# Ignore non-code
+*.csv
+*.pkl
+*.json
+*.txt
+*.html
+*.xlsx
