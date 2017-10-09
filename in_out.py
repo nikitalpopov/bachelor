@@ -3,9 +3,9 @@ import pandas
 
 def init_from_file(file):
     categories, urls = [], []
-    with open(file, 'r') as input:
-        n = int(input.readline()) # num of sites' subpages needed to be downloaded (including root)
-        for line in input:
+    with open(file, 'r') as input_file:
+        n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)
+        for line in input_file:
             row = line.split()
             categories.append(row[0])
             urls.append(row[1])

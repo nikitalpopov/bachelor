@@ -2,11 +2,10 @@ import time
 import json
 import pandas
 from collections import Counter
-import pprint
 
-from in_out import *
-from process import *
-from text import *
+import in_out
+import process
+import text
 
 # Init variables
 data = []
@@ -20,7 +19,7 @@ pool = ThreadPool(4)
 
 print('Getting array of urls...')
 # Get all urls from .txt to array of strings
-n, categories, urls = init_from_file('urls.txt')
+n, categories, urls = in_out.init_from_file('urls.txt')
 n += 1
 print(urls)
 print()
@@ -37,7 +36,7 @@ print('+ Start filling trees with root nodes for each site...')
 # and return the results
 start = time.clock()
 # Parallel processing, returns all data to array [[[links1], [text1]], [[links2], [text2]], ..., [[linksn], [textn]]]
-results = pool.starmap(process_html, zip(urls, urls))
+results = pool.starmap(process.process_html, zip(urls, urls))
 
 # Close the pool and wait for the work to finish
 pool.close()
@@ -56,7 +55,7 @@ for i in range(len(results)):  # process url[i] data
         children[i].append(urls[i])
         print(len(parsing[0]))  # print num of children urls
         for j in range(len(parsing[0])):
-             # fill tree for url[i]: setting list of children urls with its children set as empty array
+            # fill tree for url[i]: setting list of children urls with its children set as empty array
             trees[i]['children'].append({'address': parsing[0][j], 'children': []})
         counter[i] += 1  # go to next root url
 stop = time.clock()
@@ -85,7 +84,7 @@ data = []
 for i in range(len(trees)):
         tree = trees[i]  # work with tree for root url[i]
         for j in range(len(tree['children'])):  # process its children urls
-            if counter[i] < n:  #till it's possible
+            if counter[i] < n:  # till it's possible
                 # pprint.pprint(tree)
                 print(counter)
                 if counter[i] == n:
@@ -94,7 +93,7 @@ for i in range(len(trees)):
                 url = subtree['address']  # current url
                 if url not in children[i]:
                     print(url)
-                    parsing = list(process_html(url, urls[i]))  # get data for url
+                    parsing = list(process.process_html(url, urls[i]))  # get data for url
                     if parsing[0] == parsing[1] and parsing[0] == []:  # if there is no data
                         tree['children'][j] = subtree  # save updated subtree
                         subtree = tree  # and get back to the parent
@@ -121,8 +120,8 @@ print('Cleaning text...')
 train = pandas.read_csv('train.csv', sep=',', encoding='utf-8')
 test = pandas.read_csv('subtrees.csv', sep=',', encoding='utf-8')
 start = time.clock()
-clean_text(train)
-clean_text(test)
+text.clean_text(train)
+text.clean_text(test)
 stop = time.clock()
 print('Time of cleaning: ', stop - start, ' s')
 train.to_csv('train_upd.csv', sep=',', encoding='utf-8')
@@ -132,7 +131,7 @@ print()
 print('Tokenizating training file...')
 train = pandas.read_csv('train_upd.csv', sep=',', encoding='utf-8')
 start = time.clock()
-tokenization(train, 'tokens.csv')
+text.tokenization(train, 'tokens.csv')
 stop = time.clock()
 print('Time of tokenization: ', stop - start, ' s')
 train = pandas.read_csv('tokens.csv', sep=',', encoding='utf-8')
@@ -160,7 +159,7 @@ print()
 print('Tokenizating testing file...')
 test = pandas.read_csv('subtrees_upd.csv', sep=',', encoding='utf-8')
 start = time.clock()
-tokenization_test(test, 'test.csv')
+text.tokenization_test(test, 'test.csv')
 stop = time.clock()
 print('Time of tokenization: ', stop - start, ' s')
 test = pandas.read_csv('test.csv', sep=',', encoding='utf-8')
@@ -185,7 +184,7 @@ print()
 
 print('Getting predicted category for each web-site...')
 for i in range(len(urls)):
-    categories[i] = [] # each web-site category
+    categories[i] = []  # each web-site category
     for url in children[i]:
         if not train.loc[train['url'] == url].empty:
             cat = train.loc[train['url'] == url, 'category'].iloc[0]
@@ -204,7 +203,7 @@ test.to_csv('test.csv', sep=',', encoding='utf-8')
 for i in range(len(urls)):
     categories[i] = Counter(categories[i]).most_common(1)[0][0]
 output = 'result_' + str(n - 1) + '.csv'
-get_output(output, categories, urls)
+in_out.get_output(output, categories, urls)
 print()
 
 print('The end')

@@ -23,10 +23,9 @@ def process_html(url, root):
                 # Beginning of acceptable children link
                 first = (url, root, '/')
                 # Ending of non-acceptable children link
-                last = ('.jpg', '.xls', '.xlsx', '.pdf', '.png', '.doc', '.docx',
-                        '.ppt', '.mp4', '.pptx', '.ppsx', '.pps', '.zip',
-                        '.JPG', '.XLS', '.XLSX', '.PDF', '.PNG', '.DOC', '.DOCX',
-                        '.PPT', '.MP4', '.PPTX', '.PPSX', '.PPS', '.ZIP')
+                file = open('endings.txt', 'r')
+                last = file.read().splitlines()
+                last = tuple(last + [x.upper() for x in last])
 
                 # Kill all script and style elements
                 for script in soup(['script', 'style']):
