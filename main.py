@@ -17,7 +17,8 @@ trees = []
 
 # Start filling tree of web-pages
 # and filling table of pairs [this page url] - [urls of its children] - [text of web page]
-for i in range(len(downloader.results)):  # process url[i] data
+init.queue = downloader.results
+for i in range(len(init.queue)):  # process url[i] data
     if init.counter[i] < init.num:  # fill data for each children till it's possible
         # (or counter[i] == max subpages num for task)
         print(init.counter)
@@ -37,7 +38,7 @@ stop = time.clock()
 print(init.children)
 # Print trees to 'trees.json'
 trees_json = json.dumps(trees, indent=4, sort_keys=True)
-with open('trees.json', 'w') as outfile:
+with open(init.TREES, 'w') as outfile:
     outfile.write(trees_json)
 print()
 
@@ -46,7 +47,7 @@ print('Getting train dataframe...')
 list_of_column_names = ['url', 'links', 'text']
 train = pandas.DataFrame(data, columns=list_of_column_names)
 train.insert(0, 'category', init.categories)  # assert categories for train data
-train.to_csv('train.csv', sep=',', encoding='utf-8')
+train.to_csv(init.TRAIN_DATA, sep=',', encoding='utf-8')
 train.to_sql('train', engine, if_exists='replace')
 print()
 print(train)
@@ -85,71 +86,22 @@ for i in range(len(trees)):
         trees[i] = tree  # return updated tree
 
 trees_json = json.dumps(trees, indent=4, sort_keys=True)
-with open('trees.json', 'w') as outfile:
+with open(init.TREES, 'w') as outfile:
     outfile.write(trees_json)
 test = pandas.DataFrame(data, columns=list_of_column_names)
-test.to_csv('subtrees.csv', sep=',', encoding='utf-8')
+test.to_csv(init.TEST_DATA, sep=',', encoding='utf-8')
 print()
 
-print('Cleaning text...')
-train = pandas.read_csv('train.csv', sep=',', encoding='utf-8')
-test = pandas.read_csv('subtrees.csv', sep=',', encoding='utf-8')
-start = time.clock()
-parser.clean_text(train)
-parser.clean_text(test)
-stop = time.clock()
-print('Time of cleaning: ', stop - start, ' s')
-train.to_csv('train_upd.csv', sep=',', encoding='utf-8')
-test.to_csv('subtrees_upd.csv', sep=',', encoding='utf-8')
-print()
-
-print('Tokenizating training file...')
-train = pandas.read_csv('train_upd.csv', sep=',', encoding='utf-8')
-start = time.clock()
-parser.tokenization(train, 'tokens.csv')
-stop = time.clock()
-print('Time of tokenization: ', stop - start, ' s')
-train = pandas.read_csv('tokens.csv', sep=',', encoding='utf-8')
-print()
-
-print('Vectorizing training text...')
+print('Parsing text...')
+train = parser.parse_data(init.TRAIN_DATA, init.TRAIN_TOKENS)
+test = parser.parse_data(init.TEST_DATA, init.TEST_TOKENS, True)
 coder = HashingVectorizer()
-start = time.clock()
 trn = coder.fit_transform(train.tokens)
-stop = time.clock()
-print('Time of vectorization: ', stop - start, ' s')
-print()
-
-print('Creating model...')
-start = time.clock()
 clf = LinearSVC().fit(trn, train.category)
-stop = time.clock()
-print('Time of model creation: ', stop - start, ' s')
-joblib.dump(clf, 'model.pkl')
-print()
-
-print('Tokenizating testing file...')
-test = pandas.read_csv('subtrees_upd.csv', sep=',', encoding='utf-8')
-start = time.clock()
-parser.tokenization(test, 'test.csv', True)
-stop = time.clock()
-print('Time of tokenization: ', stop - start, ' s')
-test = pandas.read_csv('test.csv', sep=',', encoding='utf-8')
-print()
-
-print('Vectorizing testing text...')
-start = time.clock()
+joblib.dump(clf, init.MODEL)
 tst = coder.transform(test.tokens.values.astype('U'))
-stop = time.clock()
-print('Time of vectorization: ', stop - start, ' s')
-print()
-
-print('Predicting category for each web-page...')
-clf = joblib.load('model.pkl')
-start = time.clock()
+clf = joblib.load(init.MODEL)
 result = clf.predict(tst)
-stop = time.clock()
-print('Time of prediction: ', stop - start, ' s')
 predicted = pandas.Series(result)
 test['predicted'] = predicted.values
 print()
@@ -167,10 +119,10 @@ for i in range(len(init.urls)):
 
 
 print('Outputting result...')
-with open('result.txt', mode='w', encoding='utf-8') as output:
+with open(init.RESULTS, mode='w', encoding='utf-8') as output:
     output.write('\n'.join(result))
 
-test.to_csv('test.csv', sep=',', encoding='utf-8')
+test.to_csv(init.TEST_DATA, sep=',', encoding='utf-8')
 
 for i in range(len(init.urls)):
     init.categories[i] = Counter(init.categories[i]).most_common(1)[0][0]
