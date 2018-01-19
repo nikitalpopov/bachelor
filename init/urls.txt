@@ -40,7 +40,7 @@ other https://kudago.com/
 other http://losko.ru/
 other http://mashportal.ru/
 other https://realty.rbc.ru/
-other http://rollingstone.ru/
+other https://rollingstone.ru/
 other https://ru.wikipedia.org/
 other https://vc.ru/
 other http://vokrugsveta.ru/

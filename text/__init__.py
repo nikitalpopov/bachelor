@@ -1,9 +1,13 @@
 import csv
-import pymorphy2
 import pandas
+import pymorphy2
+import nltk
+import string
+from nltk.corpus import stopwords
 
 
-def clean_text(dataframe):
+# PYMORPHY2
+def clear_text(dataframe):
     # Remove all short words
     dataframe.text = dataframe.text.str.replace(r'\W*\b\w{1,2}\b', ' ')
 
@@ -61,10 +65,44 @@ def my_tokenizer(s, morph):
     return f
 
 
-def parse_data(input, output, is_test=False):
+# NLTK
+def tokenization_nltk(dataframe, csv_file, is_test=False):
+    # firstly let's apply nltk tokenization
+    dataframe.text = nltk.word_tokenize(dataframe.text)
+    print(dataframe)
+
+    # let's delete punctuation symbols
+    dataframe.text = [i for i in dataframe.text if (i not in string.punctuation)]
+
+    # deleting stop_words
+    stop_words = stopwords.words('russian')
+    stop_words.extend(['что', 'это', 'так', 'вот', 'быть', 'как', 'в', '—', 'к', 'на'])
+    dataframe.text = [i for i in dataframe.text if (i not in stop_words)]
+
+    # cleaning words
+    dataframe.text = [i.replace("«", "").replace("»", "") for i in dataframe.text]
+
+    # output results
+    out_csv = csv.writer(open(csv_file, "w", encoding='utf-8'))
+    out_csv.writerow(['url', 'predicted' if is_test else 'category', 'tokens'])
+    for i in range(dataframe.shape[0]):
+        url = dataframe.iloc[i]['url']
+        cat = dataframe.iloc[i]['category'] if not is_test else []
+        z = dataframe.iloc[i]['text']
+
+        if type(z) == str:
+            out_csv.writerow((url, cat, z))
+        else:
+            out_csv.writerow((url, cat, []))
+
+
+def parse_data(input, output, engine='pymorphy', is_test=False):
     dataframe = pandas.read_csv(input, sep=',', encoding='utf-8')
-    clean_text(dataframe)
-    dataframe.to_csv(input, sep=',', encoding='utf-8')
-    tokenization(dataframe, output, is_test)
+    if engine == 'nltk':
+        tokenization_nltk(dataframe, output, is_test)  # @todo test
+    else:  # engine == 'pymorphy'
+        clear_text(dataframe)
+        dataframe.to_csv(input, sep=',', encoding='utf-8')
+        tokenization(dataframe, output, is_test)
 
     return pandas.read_csv(output, sep=',', encoding='utf-8')
