@@ -17,10 +17,9 @@ def parallel(func, parameters, threads=4):
 
 def from_file(file):
     """Get initial data from file
-
-    :param file: path to .txt file
-    :return n: num of children pages of each website
-    :return data: category - url pairs
+        :param file: path to .txt file
+        :return n: num of children pages of each website
+        :return data: category - url pairs
     """
     with open(file, 'r') as input_file:
         n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)

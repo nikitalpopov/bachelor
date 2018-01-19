@@ -6,6 +6,21 @@ import string
 from nltk.corpus import stopwords
 
 
+def find_between(string, first, last):
+    """Find substring between first 'first' and last 'last'
+        :param first:
+        :param last:
+        :return string:
+    """
+    try:
+        start = string.index(first) + len(first)
+        end = string.rindex(last, start)
+
+        return string[start:end]
+    except ValueError:
+        return ""
+
+
 # PYMORPHY2
 def clear_text(dataframe):
     # Remove all short words

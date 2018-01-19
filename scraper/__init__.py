@@ -1,10 +1,54 @@
+import urllib.request
+import urllib.error
 import mechanicalsoup
+import ftfy
 from bs4 import Comment
 from pprint import pprint
 
+import text
+
+
+def validate_url(url):
+    """Check if url is valid
+        :param url: string with URL
+        :return bool:
+    """
+    try:
+        url.encode('ascii')
+        urllib.request.urlopen(url)
+
+    except UnicodeEncodeError:
+        print(url, 'has bad characters')
+        return False
+
+    except urllib.error.HTTPError as err:
+        print(url, 'has an HTTPError:', err.reason)
+        return False
+
+    except urllib.error.URLError as err:
+        print(url, 'has an URLError:', err.reason)
+        return False
+
+    else:
+        return True
+
+
+def get_root_domain(url):
+    """Get parents name to fetch with children
+        :param url: string with URL
+        :return string:
+    """
+    if text.find_between(url, 'http://', '/') != '':
+        return text.find_between(url, 'http://', '/')
+    else:
+        return text.find_between(url, 'https://', '/')
+
 
 def parse_url(url):
-    url.encode('ascii')
+    if not validate_url(url):
+        print()
+        return
+
     browser = mechanicalsoup.StatefulBrowser(
         soup_config={'features': 'lxml'},
         raise_on_404=True
@@ -12,10 +56,11 @@ def parse_url(url):
     response = browser.open(url)
     actual_url = browser.get_url()
 
-    print(response.status_code, ' ', actual_url)
+    print(response.status_code, actual_url)
 
     if response.status_code >= 400:
         browser.close()
+        print()
         return
 
     webpage = browser.get_current_page()
@@ -24,7 +69,9 @@ def parse_url(url):
     browser.close()
 
     if ("text/html" in response.headers["content-type"]) and webpage:
-        # print(url, ' -> ', actual_url)
+        # if url != actual_url:
+        #     print(url, '->', actual_url)
+        print(get_root_domain(actual_url))
 
         # Remove all comments
         for comments in webpage.findAll(text=lambda text: isinstance(text, Comment)):
@@ -65,6 +112,7 @@ def parse_url(url):
             text = []
         text = ' '.join(text)
 
-        pprint(text)
+        # pprint(text)
+        print()
 
     return
