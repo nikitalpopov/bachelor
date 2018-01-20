@@ -28,29 +28,30 @@ def find_between(string, first, last):
 
 
 # PYMORPHY2
-def clear_text(dataframe):
+def clear_text(text):
     # Remove all short words
-    dataframe.text = dataframe.text.str.replace(r'\W*\b\w{1,2}\b', ' ')
+    text = text.str.replace(r'\W*\b\w{1,2}\b', ' ')
 
     # All text to lower case
-    dataframe.text = dataframe.text.str.lower()
+    text = text.str.lower()
 
     # Cleaning text from useless characters
-    dataframe.text = dataframe.text.str.replace(r'[^\u0400-\u04FF]', u' ')
-    dataframe.text = dataframe.text.str.replace(' - ', ' ')
-    dataframe.text = dataframe.text.str.replace('[0-9]', ' ')
-    dataframe.text = dataframe.text.str.replace('- ', ' ')
-    dataframe.text = dataframe.text.str.replace(' -', ' ')
-    dataframe.text = dataframe.text.str.replace(u' . ', ' ')
-    dataframe.text = dataframe.text.str.replace(u'.', ' ')
-    dataframe.text = dataframe.text.str.replace(u'[', ' ')
-    dataframe.text = dataframe.text.str.replace(u']', ' ')
-    dataframe.text = dataframe.text.str.replace(u'=', ' ')
-    dataframe.text = dataframe.text.str.replace(u'+', ' ')
-    dataframe.text = dataframe.text.str.replace(r',!?&*#№@|/():"«»§±`~', ' ')
-    dataframe.text = dataframe.text.str.replace(u' +', ' ')
-    dataframe.text = dataframe.text.str.strip()
+    text = text.str.replace(r'[^\u0400-\u04FF]', u' ')
+    text = text.str.replace(' - ', ' ')
+    text = text.str.replace('[0-9]', ' ')
+    text = text.str.replace('- ', ' ')
+    text = text.str.replace(' -', ' ')
+    text = text.str.replace(u' . ', ' ')
+    text = text.str.replace(u'.', ' ')
+    text = text.str.replace(u'[', ' ')
+    text = text.str.replace(u']', ' ')
+    text = text.str.replace(u'=', ' ')
+    text = text.str.replace(u'+', ' ')
+    text = text.str.replace(r',!?&*#№@|/():"«»§±`~', ' ')
+    text = text.str.replace(u' +', ' ')
+    text = text.str.strip()
     # print(train.text)
+    return text
 
 
 def tokenization(dataframe, csv_file, is_test=False):
@@ -122,8 +123,17 @@ def parse_data(input, output, engine='pymorphy', is_test=False):
     if engine == 'nltk':
         tokenization_nltk(dataframe, output, is_test)  # @todo test
     else:  # engine == 'pymorphy'
-        clear_text(dataframe)
+        clear_text(dataframe.text)
         dataframe.to_csv(input, sep=',', encoding='utf-8')
         tokenization(dataframe, output, is_test)
 
     return pandas.read_csv(output, sep=',', encoding='utf-8')
+
+
+def parse_column(column, engine='pymorphy'):
+    if engine == 'nltk':
+        return column
+    else:
+        column = clear_text(column)
+
+    return column

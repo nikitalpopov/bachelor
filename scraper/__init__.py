@@ -56,7 +56,7 @@ def parse_url(url):
     if not validate_url(url):
         page_type = None
         print()
-        return {'actual_url': actual_url, 'type': page_type, 'text': text}
+        return {'url': actual_url, 'type': page_type, 'text': text}
 
     browser = mechanicalsoup.StatefulBrowser(
         soup_config={'features': 'lxml'},
@@ -71,7 +71,7 @@ def parse_url(url):
         page_type = 0
         browser.close()
         print()
-        return {'actual_url': actual_url, 'type': page_type, 'text': text}
+        return {'url': actual_url, 'type': page_type, 'text': text}
 
     webpage = browser.get_current_page()
     links = browser.links()
