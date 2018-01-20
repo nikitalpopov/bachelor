@@ -1,14 +1,16 @@
 20
+university abc
+university 14fr.tf
 university http://bmstu.ru/
 university http://gubkin.ru/
-university http://www.kstu.ru/
+university http://kstu.ru/
 university http://kubsu.ru/
 university http://mai.ru/
 university http://mipt.ru/
 university http://misis.ru/
 university http://msu.ru/
 university http://petrsu.ru/
-university http://www.rudn.ru/
+university http://rudn.ru/
 university http://spbu.ru/
 university http://tpu.ru/
 university http://tsu.ru/
@@ -26,7 +28,7 @@ institute http://issras.ru/
 institute http://kibb.knc.ru/
 institute http://paleo.ru/
 institute https://protres.ru/
-institute http://www.icb.psn.ru/
+institute http://icb.psn.ru/
 institute http://issp.psn.ru/
 institute http://vigg.ru/
 other http://eda.ru/

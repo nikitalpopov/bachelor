@@ -17,6 +17,10 @@ def validate_url(url):
         url.encode('ascii')
         urllib.request.urlopen(url)
 
+    except ValueError:
+        print(url, 'is invalid url')
+        return False
+
     except UnicodeEncodeError:
         print(url, 'has bad characters')
         return False
@@ -45,9 +49,14 @@ def get_root_domain(url):
 
 
 def parse_url(url):
+    actual_url = None
+    page_type = 1
+    text = None
+
     if not validate_url(url):
+        page_type = None
         print()
-        return
+        return {'actual_url': actual_url, 'type': page_type, 'text': text}
 
     browser = mechanicalsoup.StatefulBrowser(
         soup_config={'features': 'lxml'},
@@ -59,9 +68,10 @@ def parse_url(url):
     print(response.status_code, actual_url)
 
     if response.status_code >= 400:
+        page_type = 0
         browser.close()
         print()
-        return
+        return {'actual_url': actual_url, 'type': page_type, 'text': text}
 
     webpage = browser.get_current_page()
     links = browser.links()
@@ -71,7 +81,7 @@ def parse_url(url):
     if ("text/html" in response.headers["content-type"]) and webpage:
         # if url != actual_url:
         #     print(url, '->', actual_url)
-        print(get_root_domain(actual_url))
+        # print(get_root_domain(actual_url))
 
         # Remove all comments
         for comments in webpage.findAll(text=lambda text: isinstance(text, Comment)):
@@ -94,6 +104,8 @@ def parse_url(url):
             children = list(set(children))
             # pprint(children)
             # print(children)
+        else:
+            page_type = 0
 
         # If needed to fix encoding
         # text = ftfy.fix_text(text)
@@ -103,16 +115,19 @@ def parse_url(url):
             # Break into lines and remove leading and trailing space on each
             lines = (line.strip() for line in text.splitlines())
             # Break multi-headlines into a line each
-            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            chunks = (phrase.strip() for line in lines for phrase in line.split(' '))
             # Drop blank lines
             text = '\n'.join(chunk for chunk in chunks if chunk)
             text = text.splitlines()
             text = list(dict.fromkeys(text))
         else:
             text = []
+            page_type = 0
         text = ' '.join(text)
 
         # pprint(text)
         print()
 
-    return
+    result = {'url': actual_url, 'type': page_type, 'text': text}
+
+    return result

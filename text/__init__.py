@@ -13,12 +13,18 @@ def find_between(string, first, last):
         :return string:
     """
     try:
+        if string == '':
+            return ''
         start = string.index(first) + len(first)
         end = string.rindex(last, start)
 
         return string[start:end]
+
+    except AttributeError:
+        return ''
+
     except ValueError:
-        return ""
+        return ''
 
 
 # PYMORPHY2
