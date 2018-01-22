@@ -123,17 +123,19 @@ def parse_data(input, output, engine='pymorphy', is_test=False):
     if engine == 'nltk':
         tokenization_nltk(dataframe, output, is_test)  # @todo test
     else:  # engine == 'pymorphy'
-        clear_text(dataframe.text)
+        dataframe.text = clear_text(dataframe.text)
         dataframe.to_csv(input, sep=',', encoding='utf-8')
         tokenization(dataframe, output, is_test)
 
     return pandas.read_csv(output, sep=',', encoding='utf-8')
 
 
-def parse_column(column, engine='pymorphy'):
+def parse_text(input, output, engine='pymorphy'):
+    dataframe = pandas.read_csv(input, sep=',', encoding='utf-8')
     if engine == 'nltk':
-        return column
+        pass
     else:
-        column = clear_text(column)
+        dataframe.text = clear_text(dataframe.text)
+    dataframe.to_csv(output, sep=',', encoding='utf-8')
 
-    return column
+    return dataframe

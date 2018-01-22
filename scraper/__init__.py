@@ -52,11 +52,14 @@ def parse_url(url):
     actual_url = None
     page_type = 1
     text = None
+    children = None
+    meta = None
+    title = None
 
     if not validate_url(url):
         page_type = None
         print()
-        return {'url': actual_url, 'type': page_type, 'text': text}
+        return {'url': actual_url, 'type': page_type, 'text': text, 'children': children, 'meta': meta, 'title': title}
 
     browser = mechanicalsoup.StatefulBrowser(
         soup_config={'features': 'lxml'},
@@ -71,7 +74,7 @@ def parse_url(url):
         page_type = 0
         browser.close()
         print()
-        return {'url': actual_url, 'type': page_type, 'text': text}
+        return {'url': actual_url, 'type': page_type, 'text': text, 'children': children, 'meta': meta, 'title': title}
 
     webpage = browser.get_current_page()
     links = browser.links()
@@ -101,7 +104,7 @@ def parse_url(url):
         if body:
             for link in links:
                 children.append(link.get('href'))
-            children = list(set(children))
+            children = [child for child in list(filter(None, list(set(children)))) if not child.startswith('#')]
             # pprint(children)
             # print(children)
         else:
@@ -128,6 +131,13 @@ def parse_url(url):
         # pprint(text)
         print()
 
-    result = {'url': actual_url, 'type': page_type, 'text': text}
+    result = {
+        'url': actual_url,
+        'type': page_type,
+        'text': text,
+        'children': children,
+        'meta': meta,
+        'title': title
+    }
 
     return result
