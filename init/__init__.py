@@ -1,16 +1,33 @@
 import pandas
+from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
+import os
+import platform
 
 
-def parallel(func, parameters, threads=4):
+def notify(title, text):
+    """Send os notification
+        :param title:
+        :param text:
+    """
+    # macOS notification
+    if platform.system() == 'Darwin':
+        os.system(
+            """osascript -e 'display notification "{}" with title "{}"'""".format(text, title))
+
+
+def parallel(func, parameters, threads=cpu_count() - 1):
     """Run function with multithreading"""
     # Make the Pool of workers
-    pool = ThreadPool(threads)
-    # Run func
-    results = pool.map(func, parameters)
-    # Close pool
-    pool.close()
-    pool.join()
+    with ThreadPool(threads) as pool:
+        # Run func
+        if type(parameters) is list:
+            results = pool.starmap(func, parameters)
+        else:
+            results = pool.map(func, parameters)
+        # Close pool
+        pool.close()
+        pool.join()
 
     return results
 
@@ -38,10 +55,6 @@ def get_output(output, categories, urls):
     print()
 
 
-# Init variables
-counter = []
-children = []
-queue = []
 URLS = 'init/urls.txt'
 # MUST BE .csv!
 TRAIN_DATA = 'train_data.csv'
@@ -49,6 +62,8 @@ TRAIN_TOKENS = 'train_tokens.csv'
 TEST_DATA = 'test_data.csv'
 TEST_TOKENS = 'test_tokens.csv'
 # MUST BE .json!
-TREES = 'trees.json'
-MODEL = 'model.pkl'
+# TREES = 'trees.json'
+UNIVERSITY = 'university.pkl'
+SCIENCE = 'science.pkl'
+OTHER = 'other.pkl'
 RESULTS = 'results.txt'

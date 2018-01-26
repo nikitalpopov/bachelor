@@ -50,7 +50,7 @@ def clear_text(text):
     text = text.str.replace(r',!?&*#№@|/():"«»§±`~', ' ')
     text = text.str.replace(u' +', ' ')
     text = text.str.strip()
-    # print(train.text)
+
     return text
 
 
@@ -71,6 +71,7 @@ def tokenization(dataframe, csv_file, is_test=False):
 
 
 def my_tokenizer(s, morph):
+    parts_of_speech = ('NUMR', 'PREP', 'CONJ', 'PRCL', 'INTJ', 'NPRO', 'COMP', 'PRED')
     t = s.split(' ')
     # print('t: ', t)
     f = ''
@@ -80,7 +81,7 @@ def my_tokenizer(s, morph):
         if len(m) != 0:
             wrd = m[0]
             # print('wrd: ', wrd)
-            if wrd.tag.POS not in ('NUMR', 'PREP', 'CONJ', 'PRCL', 'INTJ', 'NPRO', 'COMP', 'PRED'):
+            if wrd.tag.POS not in parts_of_speech:
                 f = f + ' ' + str(wrd.normal_form)
     # print('f: ', f)
 
@@ -119,7 +120,7 @@ def tokenization_nltk(dataframe, csv_file, is_test=False):
 
 
 def parse_data(input, output, engine='pymorphy', is_test=False):
-    dataframe = pandas.read_csv(input, sep=',', encoding='utf-8')
+    dataframe = pandas.read_csv(input, sep=',', encoding='utf-8', na_filter=False)
     if engine == 'nltk':
         tokenization_nltk(dataframe, output, is_test)  # @todo test
     else:  # engine == 'pymorphy'
@@ -131,7 +132,7 @@ def parse_data(input, output, engine='pymorphy', is_test=False):
 
 
 def parse_text(input, output, engine='pymorphy'):
-    dataframe = pandas.read_csv(input, sep=',', encoding='utf-8')
+    dataframe = pandas.read_csv(input, sep=',', encoding='utf-8', na_filter=False)
     if engine == 'nltk':
         pass
     else:

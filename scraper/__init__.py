@@ -49,17 +49,9 @@ def get_root_domain(url):
 
 
 def parse_url(url):
-    actual_url = None
-    page_type = 1
-    text = None
-    children = None
-    meta = None
-    title = None
-
     if not validate_url(url):
-        page_type = None
         print()
-        return {'url': actual_url, 'type': page_type, 'text': text, 'children': children, 'meta': meta, 'title': title}
+        return {'url': None, 'type': None, 'text': None, 'children': None, 'meta': None, 'title': None}
 
     browser = mechanicalsoup.StatefulBrowser(
         soup_config={'features': 'lxml'},
@@ -71,15 +63,20 @@ def parse_url(url):
     print(response.status_code, actual_url)
 
     if response.status_code >= 400:
-        page_type = 0
         browser.close()
         print()
-        return {'url': actual_url, 'type': page_type, 'text': text, 'children': children, 'meta': meta, 'title': title}
+        return {'url': actual_url, 'type': 0, 'text': '', 'children': [], 'meta': '', 'title': ''}
 
     webpage = browser.get_current_page()
     links = browser.links()
 
     browser.close()
+
+    page_type = 1
+    page_text = ''
+    children = []
+    meta = ''
+    title = ''
 
     if ("text/html" in response.headers["content-type"]) and webpage:
         # if url != actual_url:
@@ -94,13 +91,14 @@ def parse_url(url):
         for script in webpage(['script', 'style']):
             script.extract()  # rip it out
 
-        meta = webpage.find('meta')
-        title = webpage.find('title')
+        if webpage.find('meta') is not None:
+            meta = webpage.find('meta')
+        if webpage.find('title') is not None:
+            title = webpage.find('title').text
         body = webpage.find('body')
-        text = webpage.get_text()
+        page_text = webpage.get_text()
 
         # Get all children links at webpage
-        children = []
         if body:
             for link in links:
                 children.append(link.get('href'))
@@ -111,33 +109,33 @@ def parse_url(url):
             page_type = 0
 
         # If needed to fix encoding
-        # text = ftfy.fix_text(text)
-        # print(text.strip())
+        # page_text = ftfy.fix_text(page_text)
+        # print(page_text.strip())
 
-        if text:
+        if page_text:
             # Break into lines and remove leading and trailing space on each
-            lines = (line.strip() for line in text.splitlines())
+            lines = (line.strip() for line in page_text.splitlines())
             # Break multi-headlines into a line each
             chunks = (phrase.strip() for line in lines for phrase in line.split(' '))
             # Drop blank lines
-            text = '\n'.join(chunk for chunk in chunks if chunk)
-            text = text.splitlines()
-            text = list(dict.fromkeys(text))
+            page_text = '\n'.join(chunk for chunk in chunks if chunk)
+            page_text = page_text.splitlines()
+            page_text = list(dict.fromkeys(page_text))
         else:
-            text = []
+            page_text = []
             page_type = 0
-        text = ' '.join(text)
+        page_text = ' '.join(page_text)
 
-        # pprint(text)
+        # pprint(page_text)
         print()
 
     result = {
-        'url': actual_url,
-        'type': page_type,
-        'text': text,
+        'url':      actual_url,
         'children': children,
-        'meta': meta,
-        'title': title
+        'type':     page_type,
+        'meta':     meta,
+        'title':    title,
+        'text':     page_text
     }
 
     return result
