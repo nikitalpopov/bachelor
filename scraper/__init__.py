@@ -1,56 +1,14 @@
-import urllib.request
-import urllib.error
+import manager
 import mechanicalsoup
 import ftfy
 from bs4 import Comment
 from pprint import pprint
-
-import text
-
-
-def validate_url(url):
-    """Check if url is valid
-        :param url: string with URL
-        :return bool:
-    """
-    try:
-        url.encode('ascii')
-        urllib.request.urlopen(url)
-
-    except ValueError:
-        print(url, 'is invalid url')
-        return False
-
-    except UnicodeEncodeError:
-        print(url, 'has bad characters')
-        return False
-
-    except urllib.error.HTTPError as err:
-        print(url, 'has an HTTPError:', err.reason)
-        return False
-
-    except urllib.error.URLError as err:
-        print(url, 'has an URLError:', err.reason)
-        return False
-
-    else:
-        return True
-
-
-def get_root_domain(url):
-    """Get parents name to fetch with children
-        :param url: string with URL
-        :return string:
-    """
-    if text.find_between(url, 'http://', '/') != '':
-        return text.find_between(url, 'http://', '/')
-    else:
-        return text.find_between(url, 'https://', '/')
+from colored import fg, attr
 
 
 def parse_url(url):
-    if not validate_url(url):
-        print()
+    if not manager.validate_url(url):
+
         return {'url': None, 'type': None, 'text': None, 'children': None, 'meta': None, 'title': None}
 
     browser = mechanicalsoup.StatefulBrowser(
@@ -60,11 +18,11 @@ def parse_url(url):
     response = browser.open(url)
     actual_url = browser.get_url()
 
-    print(response.status_code, actual_url)
+    print(fg(2) + str(response.status_code) + attr(0), actual_url)
 
     if response.status_code >= 400:
         browser.close()
-        print()
+
         return {'url': actual_url, 'type': 0, 'text': '', 'children': [], 'meta': '', 'title': ''}
 
     webpage = browser.get_current_page()
@@ -127,7 +85,6 @@ def parse_url(url):
         page_text = ' '.join(page_text)
 
         # pprint(page_text)
-        print()
 
     result = {
         'url':      actual_url,

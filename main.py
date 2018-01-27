@@ -1,28 +1,39 @@
-import classification
 import init
-import pandas
+import manager
 import scraper
 import text
+import classification
+import pandas
 from pprint import pprint
 
-print('Getting array of urls...')
+title = '🛠 bachelor'
+message = 'initializing data...'
+init.notify(title, message)
 # Get all urls from .txt to array of strings
 children_count, categories = init.from_file(init.URLS)
 
 # Results of scraping: 'url', 'type', 'text'
 # scraped = init.parallel(scraper.parse_url, [categories.iloc[0]['url']])  # get first url
 scraped = init.parallel(scraper.parse_url, categories['url'])  # all urls
-# pprint([x for x in scraped])
+# pprint(scraped)
 
 # List of available websites
-clean_roots = pandas.Series(
-    [scraper.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]]
-)
 roots = pandas.Series([url for url in [x['url'] for x in scraped if x['url'] is not None]])
+roots.name = 'url'
+clean_roots = pandas.Series(
+    [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]]
+)
+clean_roots.name = 'root'
 # pprint(roots)
-print()
 
-print('Parsing data...')
+queue = pandas.concat([roots, clean_roots], axis=1)
+data = pandas.DataFrame()
+manager.run(queue, clean_roots, data)
+
+exit()
+
+message = 'parsing data...'
+init.notify(title, message)
 # Dataframe with scraped data
 train = pandas.DataFrame.from_records(scraped)
 train = train.dropna(how='all')
@@ -32,25 +43,13 @@ train['root'] = roots.values
 train.to_csv(init.TRAIN_DATA, sep=',', encoding='utf-8', index=False)
 
 train = text.parse_text(init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
-print(train)
-# pprint(text.parse_data(init.TRAIN_DATA, init.TRAIN_TOKENS))
-print()
+# pprint(train)
 
-print('Classification...')
-parameters = [
-    (train.text, train.category, init.UNIVERSITY),
-    (train.text, train.category, init.SCIENCE),
-    (train.text, train.category, init.OTHER)
-]
-prediction = init.parallel(classification.predict, parameters)
-predicted = {
-    'university': prediction[0],
-    'science':    prediction[1],
-    'other':      prediction[2]
-}
-print(predicted)
-print()
+message = 'classification...'
+init.notify(title, message)
+predicted = classification.classify(train)
+pprint(predicted)
 
 # Exit
-print('The end')
-init.notify('🛠 bachelor', 'script has finished')
+message = 'script has finished'
+init.notify(title, message)

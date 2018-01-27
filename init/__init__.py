@@ -1,8 +1,9 @@
 import pandas
-from multiprocessing import cpu_count
-from multiprocessing.dummy import Pool as ThreadPool
 import os
 import platform
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
+from colored import fg, attr
 
 
 def notify(title, text):
@@ -10,6 +11,10 @@ def notify(title, text):
         :param title:
         :param text:
     """
+    print()
+    print(fg(8) + text + attr(0))
+    print()
+
     # macOS notification
     if platform.system() == 'Darwin':
         os.system(

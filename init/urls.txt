@@ -15,7 +15,7 @@ university http://spbu.ru/
 university http://tpu.ru/
 university http://tsu.ru/
 university http://unn.ru/
-university http://vsu.ru/
+test http://vsu.ru/
 institute http://binran.ru/
 institute http://idbras.comcor.ru/
 institute http://ginras.ru/
@@ -30,7 +30,7 @@ institute http://paleo.ru/
 institute https://protres.ru/
 institute http://icb.psn.ru/
 institute http://issp.psn.ru/
-institute http://vigg.ru/
+test http://vigg.ru/
 other http://eda.ru/
 other http://esquire.ru/
 other http://habrahabr.ru/
@@ -45,4 +45,4 @@ other http://realty.rbc.ru/
 other http://rollingstone.ru/
 other http://ru.wikipedia.org/
 other http://vc.ru/
-other http://vokrugsveta.ru/
+test http://vokrugsveta.ru/
