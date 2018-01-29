@@ -25,12 +25,8 @@ def parallel(func, parameters, threads=cpu_count() - 1):
     """Run function with multithreading"""
     # Make the Pool of workers
     with ThreadPool(threads) as pool:
-        # Run func
-        if type(parameters) is list:
-            results = pool.starmap(func, parameters)
-        else:
-            results = pool.map(func, parameters)
-        # Close pool
+        results = pool.map(func, parameters)
+
         pool.close()
         pool.join()
 

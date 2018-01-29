@@ -13,6 +13,10 @@ def validate_url(url):
         :return bool:
     """
     try:
+        # if 'mailto://' in url:
+        #     print(fg(1) + 'ERR' + attr(0), url, fg(1) + 'is "mailto://" url' + attr(0))
+        #     return False
+
         url.encode('ascii')
         urllib.request.urlopen(url)
 
@@ -24,12 +28,23 @@ def validate_url(url):
         print(fg(1) + 'ERR' + attr(0), url, fg(1) + 'has bad characters' + attr(0))
         return False
 
+    except TimeoutError:
+        print(fg(1) + 'ERR' + attr(0), url, fg(1) + ':: Operation timed out' + attr(0))
+        return False
+
+    except ConnectionResetError:
+        print(fg(1) + 'ERR' + attr(0), url, fg(1) + ':: Connection reset by peer' + attr(0))
+        return False
+
     except urllib.error.HTTPError as err:
         print(fg(1) + 'ERR' + attr(0), url, fg(1) + str(err.reason) + attr(0))
         return False
 
     except urllib.error.URLError as err:
         print(fg(1) + 'ERR' + attr(0), url, fg(1) + str(err.reason) + attr(0))
+        return False
+
+    except:
         return False
 
     else:
@@ -59,28 +74,34 @@ def fix_url(url, root):
         :param root: string with root URL
         :return url:
     """
+    print(fg(6) + url + attr(0))
     if ~validate_url(url):
         parsed = get_root_domain(url)
         if parsed == '':
             if url.startswith('/'):  # '/link'
-                url = root[:-1] + url
-                if validate_url(url):
-                    return url
+                if validate_url(root[:-1] + url):
+                    print(fg(2) + root[:-1] + url + attr(0))
+                    return root[:-1] + url
                 else:
-                    return ''
+                    print(fg(1) + 'invalid' + attr(0))
+                    return None
             else:  # 'link'
-                url = root + url
-                if validate_url(url):
-                    return url
+                if validate_url(root + url):
+                    print(fg(2) + root + url + attr(0))
+                    return root + url
                 else:
-                    return ''
+                    print(fg(1) + 'invalid' + attr(0))
+                    return None
         else:
-            return ''
+            print(fg(1) + 'invalid' + attr(0))
+            return None
     else:
         if root in url:
+            print(fg(2) + url + attr(0))
             return url
         else:
-            return ''
+            print(fg(1) + 'invalid' + attr(0))
+            return None
 
 
 def flatten(S):
@@ -91,29 +112,49 @@ def flatten(S):
     return S[:1] + flatten(S[1:])
 
 
-def run(queue, roots, dataframe):
-    # print(queue)
+def manage(queue, roots, dataframe):
+    print(queue)
     # print(roots)
     # print(dataframe)
-    scraped = [scraper.parse_url(url) for url in queue['url'].values]
-    appendix = pandas.DataFrame.from_records(scraped)
-    appendix = appendix.dropna(how='all')
+    scraped = [run(url) for url in queue.loc[queue['status'] != '+', 'url']]
+    queue.loc[queue['status'] != '+', 'status'] = '+'
+    # pprint(scraped)
+    appendix = pandas.DataFrame.from_records(scraped).dropna(how='all')
+    # pprint(appendix)
 
     children = []
     for root in appendix['url']:
-        print(root)
+        # print(root)
         for links in appendix.loc[appendix.url == root, 'children']:
             for link in links:
-                print(link)
+                # print(link)
                 children.append((link, root))
-    pprint(children)
+    # pprint(children)
 
-    children = [fix_url(link, root) for link, root in children]
+    fixed = []
+    for link, root in children:
+        check = fix_url(link, root)
+        if check != '':
+            fixed.append((check, root))
+
+    children = pandas.DataFrame\
+        .from_records(fixed, columns=['url', 'root'])\
+        .dropna(how='any')\
+        .drop_duplicates(subset='url')
+    children['status'] = '-'
     pprint(children)
+    queue = queue.append(children).drop_duplicates()
+    print(queue)
     # @todo add 'category' and 'root'
-    # train['category'] = pandas.Series([categories['category'][i] for i in roots.categories.values]).values
-    # train['root'] = roots.values
+    # appendix['category'] = pandas.Series([categories['category'][i] for i in roots.categories.values]).values
+    # appendix['root'] = roots.values
     dataframe = dataframe.append(appendix)
-    # print(dataframe)
 
     # run(queue, roots, dataframe)
+    return queue, dataframe
+
+
+def run(url):
+    scraped = scraper.parse_url(url)
+
+    return scraped

@@ -4,6 +4,8 @@ from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 from pprint import pprint
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
 
 
 def predict(train, test, model):
@@ -45,7 +47,11 @@ def classify(dataframe):
         (sci, test, init.SCIENCE),
         (oth, test, init.OTHER)
     ]
-    prediction = init.parallel(predict, parameters)
+    with ThreadPool(cpu_count() - 1) as pool:
+        prediction = pool.starmap(predict, parameters)
+
+        pool.close()
+        pool.join()
 
     return {
         'university': prediction[0],
