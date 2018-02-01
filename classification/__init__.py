@@ -25,20 +25,21 @@ def predict(train, test, model):
 
 
 def classify(dataframe):
-    test = dataframe.loc[dataframe['category'].isin(['test'])].copy()
+    test = dataframe.loc[dataframe['purpose'].isin(['test'])].copy()
+    validate = dataframe.loc[dataframe['purpose'].isin(['validate'])].copy()
 
     # uni = dataframe.copy()
-    uni = dataframe.loc[~dataframe['category'].isin(['test'])].copy()
+    uni = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     uni.loc[uni['category'] != 'university', 'category'] = 'invalid'
     # pprint(uni)
 
     # sci = dataframe.copy()
-    sci = dataframe.loc[~dataframe['category'].isin(['test'])].copy()
+    sci = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     sci.loc[sci['category'] != 'institute', 'category'] = 'invalid'  # @todo replace to 'science' when actual
     # pprint(sci)
 
     # oth = dataframe.copy()
-    oth = dataframe.loc[~dataframe['category'].isin(['test'])].copy()
+    oth = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     oth.loc[oth['category'] != 'other', 'category'] = 'invalid'
     # pprint(oth)
 

@@ -18,18 +18,17 @@ scraped = init.parallel(scraper.parse_url, categories['url'])  # all urls
 # pprint(scraped)
 
 # List of available websites
-roots = pandas.Series([url for url in [x['url'] for x in scraped if x['url'] is not None]])
-roots.name = 'url'
-clean_roots = pandas.Series(
-    [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]]
-)
-clean_roots.name = 'root'
-# pprint(roots)
+queue = pandas.DataFrame.from_dict({
+    'url': [url for url in [x['url'] for x in scraped if x['url'] is not None]],
+    'status': ['-' for _ in [x['url'] for x in scraped if x['url'] is not None]]
+})
+roots = pandas.DataFrame.from_dict({
+    'root': [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]],
+    'children': [20 for _ in [x['url'] for x in scraped if x['url'] is not None]]
+})
 
-queue = pandas.concat([roots, clean_roots], axis=1)  # @todo add 'status'
-queue['status'] = '-'
 data = pandas.DataFrame()
-queue, data = manager.manage(queue, clean_roots, data)
+queue, data = manager.manage(queue, roots, data)
 pprint(data)
 
 message = 'parsing data...'
@@ -39,8 +38,9 @@ init.notify(title, message)
 # dataframe = dataframe.dropna(how='all')
 dataframe = data.copy()
 # pprint(train)
+dataframe['purpose'] = pandas.Series([categories['purpose'][i] for i in dataframe.index.values]).values
 dataframe['category'] = pandas.Series([categories['category'][i] for i in dataframe.index.values]).values
-dataframe['root'] = roots.values
+dataframe['root'] = queue['url']
 dataframe.to_csv(init.TRAIN_DATA, sep=',', encoding='utf-8', index=False)
 dataframe = text.parse_text(init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
 # pprint(train)

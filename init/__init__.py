@@ -41,7 +41,7 @@ def from_file(file):
     """
     with open(file, 'r') as input_file:
         n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)
-        data = pandas.read_csv(input_file, sep=" ", header=None, names=['category', 'url'])
+        data = pandas.read_csv(input_file, sep=" ", header=None, names=['purpose', 'category', 'url'])
 
     return n, data
 

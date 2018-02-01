@@ -114,7 +114,7 @@ def flatten(S):
 
 def manage(queue, roots, dataframe):
     print(queue)
-    # print(roots)
+    print(roots)
     # print(dataframe)
     scraped = [run(url) for url in queue.loc[queue['status'] != '+', 'url']]
     queue.loc[queue['status'] != '+', 'status'] = '+'
@@ -128,7 +128,7 @@ def manage(queue, roots, dataframe):
         for links in appendix.loc[appendix.url == root, 'children']:
             for link in links:
                 # print(link)
-                children.append((link, root))
+                children.append((link, root))  # @todo fix Nones
     # pprint(children)
 
     fixed = []
@@ -136,6 +136,7 @@ def manage(queue, roots, dataframe):
         check = fix_url(link, root)
         if check != '':
             fixed.append((check, root))
+            print(fixed)
 
     children = pandas.DataFrame\
         .from_records(fixed, columns=['url', 'root'])\
@@ -149,6 +150,8 @@ def manage(queue, roots, dataframe):
     # appendix['category'] = pandas.Series([categories['category'][i] for i in roots.categories.values]).values
     # appendix['root'] = roots.values
     dataframe = dataframe.append(appendix)
+    pprint(dataframe)
+    exit()
 
     # run(queue, roots, dataframe)
     return queue, dataframe
