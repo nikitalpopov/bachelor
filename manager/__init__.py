@@ -13,10 +13,6 @@ def validate_url(url):
         :return bool:
     """
     try:
-        # if 'mailto://' in url:
-        #     print(fg(1) + 'ERR' + attr(0), url, fg(1) + 'is "mailto://" url' + attr(0))
-        #     return False
-
         url.encode('ascii')
         urllib.request.urlopen(url)
 
@@ -59,11 +55,19 @@ def get_root_domain(url):
     if url is None:
         return ''
 
-    if text.find_between(url, 'http://', '/') != '':
-        return text.find_between(url, 'http://', '/')
+    http = text.find_between(url, 'http://', '/')
+    https = text.find_between(url, 'https://', '/')
+    if http != '':
+        if http.startswith('www.'):
+            return http[4:]
+        else:
+            return http
     else:
-        if text.find_between(url, 'https://', '/') != '':
-            return text.find_between(url, 'https://', '/')
+        if https != '':
+            if https.startswith('www.'):
+                return https[4:]
+            else:
+                return https
         else:
             return ''
 
@@ -75,6 +79,8 @@ def fix_url(url, root):
         :return url:
     """
     print(fg(6) + url + attr(0))
+
+    # @todo do less requests
     if ~validate_url(url):
         parsed = get_root_domain(url)
         if parsed == '':
@@ -116,48 +122,64 @@ def manage(queue, roots, dataframe):
     print(queue)
     print(roots)
     # print(dataframe)
-    scraped = [run(url) for url in queue.loc[queue['status'] != '+', 'url']]
-    queue.loc[queue['status'] != '+', 'status'] = '+'
+
+    # next((x for x in a if x in str), False)  # find first substring from list
+    scraped = []
+    for url in queue.loc[queue['status'] != '+', 'url']:
+        if roots.loc[roots['root'].str.match('.*[url].*'), 'children'][0] == 0:
+            url = ''
+        else:
+            queue.loc[queue['url'] == url, 'status'] = '+'
+            for i, row in roots.iterrows():
+                if row['root'] in url:
+                    roots.loc[i, 'children'] -= 1
+        scraped.append(scraper.parse_url(url))
+
     # pprint(scraped)
     appendix = pandas.DataFrame.from_records(scraped).dropna(how='all')
-    # pprint(appendix)
+    appendix['root'] = ''
+
+    for _, root in roots.iterrows():
+        # print(appendix.loc[appendix['url'].str.contains(root.root), 'root'])
+        appendix.loc[appendix['url'].str.contains(root.root), 'root'] = root.root
 
     children = []
     for root in appendix['url']:
-        # print(root)
         for links in appendix.loc[appendix.url == root, 'children']:
             for link in links:
-                # print(link)
-                children.append((link, root))  # @todo fix Nones
-    # pprint(children)
+                children.append((link, root))
+                # pprint(children)
 
     fixed = []
     for link, root in children:
         check = fix_url(link, root)
         if check != '':
-            fixed.append((check, root))
-            print(fixed)
+            for i, row in roots.iterrows():
+                if row['root'] in link:
+                    # @todo skips a lot of children
+                    roots.loc[i, 'children'] -= 1
+            # @todo if root.children == 0, clear queue for this root and never add new links
+            fixed.append((check, roots.loc[roots['root'].str.match('.*[root].*'), 'root'][0], roots.loc[roots['root'].str.match('.*[root].*'), 'category'][0]))
+            # @todo add change children for parent link in appendix
+    # pprint(fixed)
 
     children = pandas.DataFrame\
-        .from_records(fixed, columns=['url', 'root'])\
+        .from_records(fixed, columns=['url', 'root', 'category'])\
         .dropna(how='any')\
         .drop_duplicates(subset='url')
     children['status'] = '-'
-    pprint(children)
-    queue = queue.append(children).drop_duplicates()
+    queue = queue.append(children[['url', 'status']], ignore_index=True).drop_duplicates()
+    pprint(appendix)
     print(queue)
-    # @todo add 'category' and 'root'
+    print(roots)
+    # @todo add 'category'
     # appendix['category'] = pandas.Series([categories['category'][i] for i in roots.categories.values]).values
     # appendix['root'] = roots.values
     dataframe = dataframe.append(appendix)
     pprint(dataframe)
+
     exit()
-
-    # run(queue, roots, dataframe)
-    return queue, dataframe
-
-
-def run(url):
-    scraped = scraper.parse_url(url)
-
-    return scraped
+    if queue.loc[queue['status'] == '-', 'status'].shape[0] == 0:
+        return queue, dataframe
+    else:
+        return manage(queue, roots, dataframe)

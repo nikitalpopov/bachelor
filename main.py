@@ -4,6 +4,7 @@ import scraper
 import text
 import classification
 import pandas
+import numpy
 from pprint import pprint
 
 title = '🛠 bachelor'
@@ -13,8 +14,8 @@ init.notify(title, message)
 children_count, categories = init.from_file(init.URLS)
 
 # Results of scraping: 'url', 'type', 'text'
-# scraped = init.parallel(scraper.parse_url, [categories.iloc[3]['url']])  # get first url
-scraped = init.parallel(scraper.parse_url, categories['url'])  # all urls
+scraped = init.parallel(scraper.parse_url, categories.loc[categories.index.isin([7, 8, 9, 13, 16, 40]), 'url'])  # get some urls
+# scraped = init.parallel(scraper.parse_url, categories['url'])  # all urls
 # pprint(scraped)
 
 # List of available websites
@@ -26,6 +27,9 @@ roots = pandas.DataFrame.from_dict({
     'root': [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]],
     'children': [20 for _ in [x['url'] for x in scraped if x['url'] is not None]]
 })
+
+# @todo FIX (drops some values?)
+roots['category'] = categories.loc[categories['url'].str.contains('|'.join(roots.root.values)), 'category'].reset_index(drop=True)
 
 data = pandas.DataFrame()
 queue, data = manager.manage(queue, roots, data)

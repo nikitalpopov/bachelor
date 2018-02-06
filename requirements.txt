@@ -2,7 +2,7 @@
 # https://github.com/Damnever/pigar
 
 # scraper/__init__.py: 2
-MechanicalSoup == 0.9.0.post4
+MechanicalSoup == 0.10.0
 
 # scraper/__init__.py: 4
 beautifulsoup4 == 4.6.0
@@ -17,6 +17,9 @@ ftfy == 5.3.0
 
 # text/__init__.py: 4,6
 nltk == 3.2.5
+
+# main.py: 7
+numpy == 1.14.0
 
 # classification/__init__.py: 2
 # init/__init__.py: 1
