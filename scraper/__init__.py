@@ -20,15 +20,15 @@ def parse_url(url):
 
     print(fg(2) + str(response.status_code) + attr(0), actual_url)
 
-    if response.status_code >= 400:
+    if browser.get_current_page() and response.status_code < 400:
+        webpage = browser.get_current_page()
+        links = browser.links()
+
+        browser.close()
+    else:
         browser.close()
 
         return {'url': actual_url, 'type': 0, 'text': '', 'children': [], 'meta': '', 'title': ''}
-
-    webpage = browser.get_current_page()
-    links = browser.links()
-
-    browser.close()
 
     page_type = 1
     page_text = ''

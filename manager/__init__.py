@@ -14,6 +14,8 @@ def validate_url(url):
     """
     try:
         url.encode('ascii')
+        if url.startswith('mailto:'):
+            raise ValueError
         urllib.request.urlopen(url)
 
     except ValueError:
@@ -102,6 +104,7 @@ def fix_url(url, root):
             print(fg(1) + 'invalid' + attr(0))
             return None
     else:
+        # @todo try to check whether link is cyrillic
         if root in url:
             print(fg(2) + url + attr(0))
             return url
@@ -110,24 +113,24 @@ def fix_url(url, root):
             return None
 
 
-def flatten(S):
-    if S == []:
-        return S
-    if isinstance(S[0], list):
-        return flatten(S[0]) + flatten(S[1:])
-    return S[:1] + flatten(S[1:])
+def flatten(nested_list):
+    if not nested_list:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten(nested_list[0]) + flatten(nested_list[1:])
+    return nested_list[:1] + flatten(nested_list[1:])
 
 
 def manage(queue, roots, dataframe):
-    print(queue)
-    print(roots)
+    # print(queue)
+    # print(roots)
     # print(dataframe)
 
     # next((x for x in a if x in str), False)  # find first substring from list
     scraped = []
     for url in queue.loc[queue['status'] != '+', 'url']:
-        if roots.loc[roots['root'].str.match('.*[url].*'), 'children'][0] == 0:
-            url = ''
+        if roots.loc[roots['root'].str.match('.*[url].*'), 'children'][0] <= 0:
+            continue
         else:
             queue.loc[queue['url'] == url, 'status'] = '+'
             for i, row in roots.iterrows():
@@ -135,7 +138,9 @@ def manage(queue, roots, dataframe):
                     roots.loc[i, 'children'] -= 1
         scraped.append(scraper.parse_url(url))
 
-    # pprint(scraped)
+    pprint(roots)
+    # input("Press Enter to continue...")
+
     appendix = pandas.DataFrame.from_records(scraped).dropna(how='all')
     appendix['root'] = ''
 
@@ -153,14 +158,16 @@ def manage(queue, roots, dataframe):
     fixed = []
     for link, root in children:
         check = fix_url(link, root)
-        if check != '':
-            for i, row in roots.iterrows():
-                if row['root'] in link:
-                    # @todo skips a lot of children
-                    roots.loc[i, 'children'] -= 1
+        if check != '' and check is not None:
+            for i, line in roots.iterrows():
+                if line['root'] in check:
+                    if roots.loc[i, 'children'] <= 0:
+                        fixed.append((check,
+                                      roots.loc[i, 'root'],
+                                      roots.loc[i, 'category']))
             # @todo if root.children == 0, clear queue for this root and never add new links
-            fixed.append((check, roots.loc[roots['root'].str.match('.*[root].*'), 'root'][0], roots.loc[roots['root'].str.match('.*[root].*'), 'category'][0]))
-            # @todo add change children for parent link in appendix
+            # @todo add changed children for parent link in appendix
+    # pprint(roots)
     # pprint(fixed)
 
     children = pandas.DataFrame\
@@ -168,18 +175,15 @@ def manage(queue, roots, dataframe):
         .dropna(how='any')\
         .drop_duplicates(subset='url')
     children['status'] = '-'
-    queue = queue.append(children[['url', 'status']], ignore_index=True).drop_duplicates()
-    pprint(appendix)
-    print(queue)
-    print(roots)
-    # @todo add 'category'
-    # appendix['category'] = pandas.Series([categories['category'][i] for i in roots.categories.values]).values
-    # appendix['root'] = roots.values
+    queue = queue.append(children, ignore_index=True).drop_duplicates()
+    # pprint(appendix)
+    # print(queue)
+    # print(roots)
     dataframe = dataframe.append(appendix)
-    pprint(dataframe)
+    # pprint(dataframe)
 
-    exit()
-    if queue.loc[queue['status'] == '-', 'status'].shape[0] == 0:
+    # input("Press Enter to continue...")
+    if roots.equals(roots.loc[roots['children'] <= 0]):
         return queue, dataframe
     else:
         return manage(queue, roots, dataframe)

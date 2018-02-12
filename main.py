@@ -4,7 +4,6 @@ import scraper
 import text
 import classification
 import pandas
-import numpy
 from pprint import pprint
 
 title = '🛠 bachelor'
@@ -14,13 +13,15 @@ init.notify(title, message)
 children_count, categories = init.from_file(init.URLS)
 
 # Results of scraping: 'url', 'type', 'text'
-scraped = init.parallel(scraper.parse_url, categories.loc[categories.index.isin([7, 8, 9, 13, 16, 40]), 'url'])  # get some urls
-# scraped = init.parallel(scraper.parse_url, categories['url'])  # all urls
-# pprint(scraped)
+# get some urls
+# scraped = init.parallel(scraper.parse_url, categories.loc[categories.index.isin([9, 16, 40]), 'url'])
+# all urls
+scraped = init.parallel(scraper.parse_url, categories['url'])
 
 # List of available websites
 queue = pandas.DataFrame.from_dict({
     'url': [url for url in [x['url'] for x in scraped if x['url'] is not None]],
+    'root': [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]],
     'status': ['-' for _ in [x['url'] for x in scraped if x['url'] is not None]]
 })
 roots = pandas.DataFrame.from_dict({
@@ -28,8 +29,9 @@ roots = pandas.DataFrame.from_dict({
     'children': [20 for _ in [x['url'] for x in scraped if x['url'] is not None]]
 })
 
-# @todo FIX (drops some values?)
-roots['category'] = categories.loc[categories['url'].str.contains('|'.join(roots.root.values)), 'category'].reset_index(drop=True)
+roots['category'] = categories.loc[categories['url'].str.contains('|'.join(roots.root.values)), 'category']\
+    .reset_index(drop=True)
+queue['category'] = roots['category']
 
 data = pandas.DataFrame()
 queue, data = manager.manage(queue, roots, data)

@@ -6,6 +6,7 @@ from sklearn.externals import joblib
 from pprint import pprint
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
+from colored import fg, attr
 
 
 def predict(train, test, model):
@@ -31,17 +32,23 @@ def classify(dataframe):
     # uni = dataframe.copy()
     uni = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     uni.loc[uni['category'] != 'university', 'category'] = 'invalid'
-    # pprint(uni)
+    print(fg(2) + 'University' + attr(0))
+    pprint(uni)
+    print()
 
     # sci = dataframe.copy()
     sci = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     sci.loc[sci['category'] != 'institute', 'category'] = 'invalid'  # @todo replace to 'science' when actual
-    # pprint(sci)
+    print(fg(2) + 'Institute' + attr(0))
+    pprint(sci)
+    print()
 
     # oth = dataframe.copy()
     oth = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     oth.loc[oth['category'] != 'other', 'category'] = 'invalid'
-    # pprint(oth)
+    print(fg(2) + 'Other' + attr(0))
+    pprint(oth)
+    print()
 
     parameters = [
         (uni, test, init.UNIVERSITY),
@@ -49,13 +56,16 @@ def classify(dataframe):
         (oth, test, init.OTHER)
     ]
     with ThreadPool(cpu_count() - 1) as pool:
-        prediction = pool.starmap(predict, parameters)
+        predicted = pool.starmap(predict, parameters)
 
         pool.close()
         pool.join()
 
+    print(fg(2) + 'Predicted' + attr(0))
+    pprint(predicted)
+
     return {
-        'university': prediction[0],
-        'science': prediction[1],
-        'other': prediction[2]
+        'university': predicted[0],
+        'science': predicted[1],
+        'other': predicted[2]
     }
