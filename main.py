@@ -3,20 +3,19 @@ import manager
 import scraper
 import text
 import classification
+import os
 import pandas
 from pprint import pprint
 
-title = '🛠 bachelor'
+title = '🛠 bachelor [' + str(os.getpid()) + ']'
 message = 'initializing data...'
 init.notify(title, message)
 # Get all urls from .txt to array of strings
 children_count, categories = init.from_file(init.URLS)
+# children_count, categories = init.from_file(init.TEST)
 
 # Results of scraping: 'url', 'type', 'text'
-# get some urls
-# scraped = init.parallel(scraper.parse_url, categories.loc[categories.index.isin([9, 16, 40]), 'url'])
-# all urls
-scraped = init.parallel(scraper.parse_url, categories['url'])
+scraped = init.parallel_map(scraper.parse_url, categories['url'])
 
 # List of available websites
 queue = pandas.DataFrame.from_dict({
@@ -55,6 +54,10 @@ message = 'classification...'
 init.notify(title, message)
 predicted = classification.classify(dataframe)
 pprint(predicted)
+
+init.get_output(init.UNIVERSITY_PREDICTED, predicted['university'][0], predicted['university'][1])
+init.get_output(init.SCIENCE_PREDICTED, predicted['science'][0], predicted['science'][1])
+init.get_output(init.OTHER_PREDICTED, predicted['other'][0], predicted['other'][1])
 
 # Exit
 message = 'script has finished'

@@ -4,8 +4,6 @@ from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 from pprint import pprint
-from multiprocessing import cpu_count
-from multiprocessing.dummy import Pool as ThreadPool
 from colored import fg, attr
 
 
@@ -38,7 +36,7 @@ def classify(dataframe):
 
     # sci = dataframe.copy()
     sci = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    sci.loc[sci['category'] != 'institute', 'category'] = 'invalid'  # @todo replace to 'science' when actual
+    sci.loc[sci['category'] != 'institute', 'category'] = 'invalid'  # todo replace to 'science' when actual
     print(fg(2) + 'Institute' + attr(0))
     pprint(sci)
     print()
@@ -51,21 +49,18 @@ def classify(dataframe):
     print()
 
     parameters = [
-        (uni, test, init.UNIVERSITY),
-        (sci, test, init.SCIENCE),
-        (oth, test, init.OTHER)
+        (uni, test, init.UNIVERSITY_MODEL),
+        (sci, test, init.SCIENCE_MODEL),
+        (oth, test, init.OTHER_MODEL)
     ]
-    with ThreadPool(cpu_count() - 1) as pool:
-        predicted = pool.starmap(predict, parameters)
 
-        pool.close()
-        pool.join()
+    predicted = init.parallel_starmap(predict, parameters)
 
     print(fg(2) + 'Predicted' + attr(0))
     pprint(predicted)
 
     return {
-        'university': predicted[0],
-        'science': predicted[1],
-        'other': predicted[2]
+        'university': (predicted[0], test.loc[test['category'] == 'university', 'url']),
+        'science': (predicted[1], test.loc[test['category'] == 'university', 'url']),
+        'other': (predicted[2], test.loc[test['category'] == 'university', 'url'])
     }

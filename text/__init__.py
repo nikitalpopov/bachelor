@@ -122,7 +122,7 @@ def tokenization_nltk(dataframe, csv_file, is_test=False):
 def parse_data(input, output, engine='pymorphy', is_test=False):
     dataframe = pandas.read_csv(input, sep=',', encoding='utf-8', na_filter=False)
     if engine == 'nltk':
-        tokenization_nltk(dataframe, output, is_test)  # @todo test
+        tokenization_nltk(dataframe, output, is_test)  # todo test
     else:  # engine == 'pymorphy'
         dataframe.text = clear_text(dataframe.text)
         dataframe.to_csv(input, sep=',', encoding='utf-8')

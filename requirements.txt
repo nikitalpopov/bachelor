@@ -7,9 +7,9 @@ MechanicalSoup == 0.10.0
 # scraper/__init__.py: 4
 beautifulsoup4 == 4.6.0
 
-# classification/__init__.py: 9
+# classification/__init__.py: 7
 # init/__init__.py: 6
-# manager/__init__.py: 6
+# manager/__init__.py: 7
 # scraper/__init__.py: 6
 colored == 1.3.5
 
@@ -21,8 +21,8 @@ nltk == 3.2.5
 
 # classification/__init__.py: 2
 # init/__init__.py: 1
-# main.py: 6
-# manager/__init__.py: 3
+# main.py: 7
+# manager/__init__.py: 4
 # text/__init__.py: 2
 pandas == 0.22.0
 

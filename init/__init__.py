@@ -21,11 +21,23 @@ def notify(title, text):
             """osascript -e 'display notification "{}" with title "{}"'""".format(text, title))
 
 
-def parallel(func, parameters, threads=cpu_count() - 1):
+def parallel_map(func, parameters, threads=cpu_count() - 1):
     """Run function with multithreading"""
     # Make the Pool of workers
     with ThreadPool(threads) as pool:
         results = pool.map(func, parameters)
+
+        pool.close()
+        pool.join()
+
+    return results
+
+
+def parallel_starmap(func, parameters, threads=cpu_count() - 1):
+    """Run function with multithreading"""
+    # Make the Pool of workers
+    with ThreadPool(threads) as pool:
+        results = pool.starmap(func, parameters)
 
         pool.close()
         pool.join()
@@ -48,15 +60,20 @@ def from_file(file):
 
 def get_output(output, categories, urls):
     """Write to .csv file and print results"""
-    results = pandas.DataFrame([[].append((categories[i], urls[i])) for i in range(len(urls))],
-                               columns=['predicted', 'url'])
-    results.to_csv(output, sep=',', encoding='utf-8')
-    print('Result:')
-    print(results)
-    print()
+    try:
+        results = pandas.DataFrame([[].append((categories[i], urls[i])) for i in range(len(urls))],
+                                   columns=['predicted', 'url'])
+        results.to_csv(output, sep=',', encoding='utf-8')
+    except:
+        print(fg(1) + 'something wrong with init.get_output()' + attr(0))
+    else:
+        print(fg(2) + 'result:' + attr(0))
+        print(results)
+        print()
 
 
 URLS = 'init/urls.txt'
+TEST = 'init/test.txt'
 # MUST BE .csv!
 TRAIN_DATA = 'train_data.csv'
 TRAIN_TOKENS = 'train_tokens.csv'
@@ -64,7 +81,10 @@ TEST_DATA = 'test_data.csv'
 TEST_TOKENS = 'test_tokens.csv'
 # MUST BE .json!
 # TREES = 'trees.json'
-UNIVERSITY = 'university.pkl'
-SCIENCE = 'science.pkl'
-OTHER = 'other.pkl'
+UNIVERSITY_MODEL = 'university.pkl'
+SCIENCE_MODEL = 'science.pkl'
+OTHER_MODEL = 'other.pkl'
+UNIVERSITY_PREDICTED = 'university.csv'
+SCIENCE_PREDICTED = 'science.csv'
+OTHER_PREDICTED = 'other.csv'
 RESULTS = 'results.txt'
