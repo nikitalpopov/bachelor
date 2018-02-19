@@ -11,8 +11,8 @@ title = '🛠 bachelor [' + str(os.getpid()) + ']'
 message = 'initializing data...'
 init.notify(title, message)
 # Get all urls from .txt to array of strings
-children_count, categories = init.from_file(init.URLS)
-# children_count, categories = init.from_file(init.TEST)
+# children_count, categories = init.from_file(init.URLS)
+children_count, categories = init.from_file(init.TEST)
 
 # Results of scraping: 'url', 'type', 'text'
 scraped = init.parallel_map(scraper.parse_url, categories['url'])
@@ -25,16 +25,18 @@ queue = pandas.DataFrame.from_dict({
 })
 roots = pandas.DataFrame.from_dict({
     'root': [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]],
-    'children': [20 for _ in [x['url'] for x in scraped if x['url'] is not None]]
+    'children': [children_count for _ in [x['url'] for x in scraped if x['url'] is not None]]
 })
 
 roots['category'] = categories.loc[categories['url'].str.contains('|'.join(roots.root.values)), 'category']\
+    .reset_index(drop=True)
+roots['purpose'] = categories.loc[categories['url'].str.contains('|'.join(roots.root.values)), 'purpose']\
     .reset_index(drop=True)
 queue['category'] = roots['category']
 
 data = pandas.DataFrame()
 queue, data = manager.manage(queue, roots, data)
-pprint(data)
+# pprint(data)
 
 message = 'parsing data...'
 init.notify(title, message)
@@ -43,21 +45,23 @@ init.notify(title, message)
 # dataframe = dataframe.dropna(how='all')
 dataframe = data.copy()
 # pprint(train)
-dataframe['purpose'] = pandas.Series([categories['purpose'][i] for i in dataframe.index.values]).values
-dataframe['category'] = pandas.Series([categories['category'][i] for i in dataframe.index.values]).values
-dataframe['root'] = queue['url']
+dataframe['purpose'] = ''
+dataframe['category'] = ''
+for i in roots.index:
+    dataframe.loc[dataframe['root'] == roots['root'][i], 'category'] = roots['category'][i]
+    dataframe.loc[dataframe['root'] == roots['root'][i], 'purpose'] = roots['purpose'][i]
 dataframe.to_csv(init.TRAIN_DATA, sep=',', encoding='utf-8', index=False)
 dataframe = text.parse_text(init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
-# pprint(train)
+pprint(dataframe)
 
 message = 'classification...'
 init.notify(title, message)
 predicted = classification.classify(dataframe)
-pprint(predicted)
+# pprint(predicted)
 
-init.get_output(init.UNIVERSITY_PREDICTED, predicted['university'][0], predicted['university'][1])
-init.get_output(init.SCIENCE_PREDICTED, predicted['science'][0], predicted['science'][1])
-init.get_output(init.OTHER_PREDICTED, predicted['other'][0], predicted['other'][1])
+init.get_output(init.UNIVERSITY_PREDICTED, predicted['university'])
+init.get_output(init.SCIENCE_PREDICTED, predicted['science'])
+init.get_output(init.OTHER_PREDICTED, predicted['other'])
 
 # Exit
 message = 'script has finished'

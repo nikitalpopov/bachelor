@@ -1,9 +1,10 @@
-import pandas
 import os
+import pandas
 import platform
+from colored import fg, attr
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
-from colored import fg, attr
+from pprint import pprint
 
 
 def notify(title, text):
@@ -53,23 +54,20 @@ def from_file(file):
     """
     with open(file, 'r') as input_file:
         n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)
+        print(n)
         data = pandas.read_csv(input_file, sep=" ", header=None, names=['purpose', 'category', 'url'])
 
     return n, data
 
 
-def get_output(output, categories, urls):
+def get_output(output, results):
     """Write to .csv file and print results"""
+    # print(fg(2) + 'Predicted' + attr(0))
+    # pprint(results)
     try:
-        results = pandas.DataFrame([[].append((categories[i], urls[i])) for i in range(len(urls))],
-                                   columns=['predicted', 'url'])
         results.to_csv(output, sep=',', encoding='utf-8')
     except:
         print(fg(1) + 'something wrong with init.get_output()' + attr(0))
-    else:
-        print(fg(2) + 'result:' + attr(0))
-        print(results)
-        print()
 
 
 URLS = 'init/urls.txt'

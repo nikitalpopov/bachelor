@@ -27,26 +27,23 @@ def classify(dataframe):
     test = dataframe.loc[dataframe['purpose'].isin(['test'])].copy()
     validate = dataframe.loc[dataframe['purpose'].isin(['validate'])].copy()
 
-    # uni = dataframe.copy()
     uni = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     uni.loc[uni['category'] != 'university', 'category'] = 'invalid'
-    print(fg(2) + 'University' + attr(0))
-    pprint(uni)
-    print()
+    # print(fg(2) + 'University' + attr(0))
+    # pprint(uni)
+    # print()
 
-    # sci = dataframe.copy()
     sci = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     sci.loc[sci['category'] != 'institute', 'category'] = 'invalid'  # todo replace to 'science' when actual
-    print(fg(2) + 'Institute' + attr(0))
-    pprint(sci)
-    print()
+    # print(fg(2) + 'Institute' + attr(0))
+    # pprint(sci)
+    # print()
 
-    # oth = dataframe.copy()
     oth = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     oth.loc[oth['category'] != 'other', 'category'] = 'invalid'
-    print(fg(2) + 'Other' + attr(0))
-    pprint(oth)
-    print()
+    # print(fg(2) + 'Other' + attr(0))
+    # pprint(oth)
+    # print()
 
     parameters = [
         (uni, test, init.UNIVERSITY_MODEL),
@@ -56,11 +53,11 @@ def classify(dataframe):
 
     predicted = init.parallel_starmap(predict, parameters)
 
-    print(fg(2) + 'Predicted' + attr(0))
-    pprint(predicted)
-
     return {
-        'university': (predicted[0], test.loc[test['category'] == 'university', 'url']),
-        'science': (predicted[1], test.loc[test['category'] == 'university', 'url']),
-        'other': (predicted[2], test.loc[test['category'] == 'university', 'url'])
+        'university': pandas.concat((test[['category', 'url', 'root']].copy().reset_index(),
+                                     predicted[0].rename('prediction')), axis=1),
+        'science': pandas.concat((test[['category', 'url', 'root']].copy().reset_index(),
+                                  predicted[1].rename('prediction')), axis=1),
+        'other': pandas.concat((test[['category', 'url', 'root']].copy().reset_index(),
+                                predicted[2].rename('prediction')), axis=1)
     }

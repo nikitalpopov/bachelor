@@ -15,8 +15,11 @@ def parse_url(url):
         soup_config={'features': 'lxml'},
         raise_on_404=True
     )
-    response = browser.open(url)
-    actual_url = browser.get_url()
+    try:
+        response = browser.open(url)
+        actual_url = browser.get_url()
+    except:
+        return {'url': None, 'type': None, 'text': None, 'children': None, 'meta': None, 'title': None}
 
     print(fg(2) + str(response.status_code) + attr(0), actual_url)
 
