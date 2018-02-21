@@ -1,0 +1,10 @@
+5
+train other http://habrahabr.ru/
+train other http://kinopoisk.ru/
+test other http://vc.ru/
+train university http://msu.ru/
+train university http://spbu.ru/
+test university http://vsu.ru/
+train institute http://ginras.ru/
+train institute http://ihna.ru/
+test institute http://vigg.ru/
