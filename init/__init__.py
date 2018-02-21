@@ -7,20 +7,23 @@ from multiprocessing.dummy import Pool as ThreadPool
 from pprint import pprint
 
 
-def notify(title, text, sound='Glass'):
+def notify(title, subtitle, text, sound='Glass'):
     """Send os notification
         :param title:
+        :param subtitle:
         :param text:
         :param sound:
     """
     print()
     print(fg(8) + text + attr(0))
+    if subtitle != '':
+        print(fg(8) + subtitle + attr(0))
     print()
 
     # macOS notification
     if platform.system() == 'Darwin':
-        os.system("""osascript -e 'display notification "{}" with title "{}" sound name "{}"'""".
-                  format(text, title, sound))
+        os.system("""osascript -e 'display notification "{}" with title "{}" subtitle "{}" sound name "{}"'""".
+                  format(text, title, subtitle, sound))
         # os.system("""say -v Alex {}""".format(text))
 
 

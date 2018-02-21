@@ -1,4 +1,4 @@
-20
+5
 train other http://habrahabr.ru/
 train other http://kinopoisk.ru/
 test other http://vc.ru/

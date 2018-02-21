@@ -83,47 +83,47 @@ def fix_url(url, root):
         :param root: string with root URL
         :return url: fixed accessible url or None
     """
-    print(fg(6) + url + attr(0))
+    # print(fg(6) + url + attr(0))
 
     # todo try to check whether link is cyrillic
     if root in url:
         if validate_url(url):
-            print(fg(2) + url + attr(0))
+            # print(fg(2) + url + attr(0))
             return url
         else:
             if not url.endswith('/'):
                 if validate_url(url + '/'):
-                    print(fg(2) + url + '/' + attr(0))
+                    # print(fg(2) + url + '/' + attr(0))
                     return url + '/'
             if url.startswith('https://'):
                 if validate_url(url[:4] + url[5:]):
-                    print(fg(2) + url[:4] + url[5:] + attr(0))
+                    # print(fg(2) + url[:4] + url[5:] + attr(0))
                     return url[:4] + url[5:]
                 else:
-                    print(fg(1) + 'invalid' + attr(0))
+                    # print(fg(1) + 'invalid' + attr(0))
                     return None
             else:
-                print(fg(1) + 'invalid' + attr(0))
+                # print(fg(1) + 'invalid' + attr(0))
                 return None
     else:
         parsed = get_root_domain(url)
         if parsed == '':
             if url.startswith('/'):  # '/link'
                 if validate_url(root[:-1] + url):
-                    print(fg(2) + root[:-1] + url + attr(0))
+                    # print(fg(2) + root[:-1] + url + attr(0))
                     return root[:-1] + url
                 else:
-                    print(fg(1) + 'invalid' + attr(0))
+                    # print(fg(1) + 'invalid' + attr(0))
                     return None
             else:  # 'link'
                 if validate_url(root + url):
-                    print(fg(2) + root + url + attr(0))
+                    # print(fg(2) + root + url + attr(0))
                     return root + url
                 else:
-                    print(fg(1) + 'invalid' + attr(0))
+                    # print(fg(1) + 'invalid' + attr(0))
                     return None
         else:
-            print(fg(1) + 'invalid' + attr(0))
+            # print(fg(1) + 'invalid' + attr(0))
             return None
 
 
@@ -155,7 +155,7 @@ def scrape(url, queue, roots):
     if len(condition) == 1 and condition[0]:
         parsed = scraper.parse_url(url)
         if parsed['type'] is not None:
-            # print(fg('green') + url + attr(0))
+            print(fg('green') + url + attr(0))
             roots.loc[root.index, 'children'] -= 1
             result = parsed
 
@@ -204,7 +204,7 @@ def manage(queue, roots, dataframe):
         :return queue:
         :return dataframe:
     """
-    print(roots)
+    # print(roots)
     # next((x for x in a if x in str), False)  # find first substring from list
     scraped = [x for x in
                init.parallel(scrape, [(url, queue, roots) for url in queue.loc[queue['status'] != '+', 'url']],

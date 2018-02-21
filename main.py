@@ -6,13 +6,15 @@ import text
 import errno
 import os
 import pandas
+from datetime import datetime
 from pprint import pprint
 
 title = '🛠 bachelor [' + str(os.getpid()) + ']'
 message = 'initializing data...'
-init.notify(title, message)
+begin = datetime.now()
+init.notify(title, '', message)
 # Get all urls from .txt to array of strings
-children_count, categories = init.from_file(init.URLS)  # init.URLS for all urls, init.TEST for test set
+children_count, categories = init.from_file(init.TEST)  # init.URLS for all urls, init.TEST for test set
 
 # Results of scraping: 'url', 'type', 'text'
 scraped = init.parallel(scraper.parse_url, categories['url'], mode='map')
@@ -33,13 +35,14 @@ roots['purpose'] = categories.loc[categories['url'].str.contains('|'.join(roots.
     .reset_index(drop=True)
 queue['category'] = roots['category']
 
+message = 'parsing websites...'
+init.notify(title, '', message)
 data = pandas.DataFrame()
 queue, data = manager.manage(queue, roots, data)
 # pprint(data)
 
 message = 'parsing data...'
-init.notify(title, message)
-
+init.notify(title, '', message)
 try:
     os.makedirs('./data')
 except OSError as e:
@@ -50,9 +53,11 @@ data = text.parse_text(init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
 # pprint(data)
 
 message = 'classification...'
-init.notify(title, message)
+init.notify(title, '', message)
 classification.classify(data)
 
 # Exit
 message = 'script has finished'
-init.notify(title, message)
+end = str((datetime.now() - begin).total_seconds() / 60.0)
+end = end.split(".")[0] + '.' + end.split(".")[1][:2]
+init.notify(title, end + ' minutes spent', message)
