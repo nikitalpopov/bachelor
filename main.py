@@ -1,8 +1,9 @@
+import classification
 import init
 import manager
 import scraper
 import text
-import classification
+import errno
 import os
 import pandas
 from pprint import pprint
@@ -11,13 +12,11 @@ title = '🛠 bachelor [' + str(os.getpid()) + ']'
 message = 'initializing data...'
 init.notify(title, message)
 # Get all urls from .txt to array of strings
-# children_count, categories = init.from_file(init.URLS)
-children_count, categories = init.from_file(init.TEST)
+children_count, categories = init.from_file(init.URLS)  # init.URLS for all urls, init.TEST for test set
 
 # Results of scraping: 'url', 'type', 'text'
-scraped = init.parallel_map(scraper.parse_url, categories['url'])
+scraped = init.parallel(scraper.parse_url, categories['url'], mode='map')
 
-# List of available websites
 queue = pandas.DataFrame.from_dict({
     'url': [url for url in [x['url'] for x in scraped if x['url'] is not None]],
     'root': [manager.get_root_domain(url) for url in [x['url'] for x in scraped if x['url'] is not None]],
@@ -40,28 +39,19 @@ queue, data = manager.manage(queue, roots, data)
 
 message = 'parsing data...'
 init.notify(title, message)
-# Dataframe with scraped data
-# dataframe = pandas.DataFrame.from_records(scraped)
-# dataframe = dataframe.dropna(how='all')
-dataframe = data.copy()
-# pprint(train)
-dataframe['purpose'] = ''
-dataframe['category'] = ''
-for i in roots.index:
-    dataframe.loc[dataframe['root'] == roots['root'][i], 'category'] = roots['category'][i]
-    dataframe.loc[dataframe['root'] == roots['root'][i], 'purpose'] = roots['purpose'][i]
-dataframe.to_csv(init.TRAIN_DATA, sep=',', encoding='utf-8', index=False)
-dataframe = text.parse_text(init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
-pprint(dataframe)
+
+try:
+    os.makedirs('./data')
+except OSError as e:
+    if e.errno != errno.EEXIST:
+        raise
+data.to_csv(init.TRAIN_DATA, sep=',', encoding='utf-8', index=False)
+data = text.parse_text(init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
+# pprint(data)
 
 message = 'classification...'
 init.notify(title, message)
-predicted = classification.classify(dataframe)
-# pprint(predicted)
-
-init.get_output(init.UNIVERSITY_PREDICTED, predicted['university'])
-init.get_output(init.SCIENCE_PREDICTED, predicted['science'])
-init.get_output(init.OTHER_PREDICTED, predicted['other'])
+classification.classify(data)
 
 # Exit
 message = 'script has finished'

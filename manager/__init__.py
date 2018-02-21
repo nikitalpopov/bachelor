@@ -1,6 +1,6 @@
 import init
-import text
 import scraper
+import text
 import numpy
 import pandas
 import urllib.request
@@ -83,21 +83,21 @@ def fix_url(url, root):
         :param root: string with root URL
         :return url: fixed accessible url or None
     """
-    # print(fg(6) + url + attr(0))
+    print(fg(6) + url + attr(0))
 
     # todo try to check whether link is cyrillic
     if root in url:
         if validate_url(url):
-            # print(fg(2) + url + attr(0))
+            print(fg(2) + url + attr(0))
             return url
         else:
             if not url.endswith('/'):
                 if validate_url(url + '/'):
-                    # print(fg(2) + url + '/' + attr(0))
+                    print(fg(2) + url + '/' + attr(0))
                     return url + '/'
             if url.startswith('https://'):
                 if validate_url(url[:4] + url[5:]):
-                    # print(fg(2) + url[:4] + url[5:] + attr(0))
+                    print(fg(2) + url[:4] + url[5:] + attr(0))
                     return url[:4] + url[5:]
                 else:
                     print(fg(1) + 'invalid' + attr(0))
@@ -110,14 +110,14 @@ def fix_url(url, root):
         if parsed == '':
             if url.startswith('/'):  # '/link'
                 if validate_url(root[:-1] + url):
-                    # print(fg(2) + root[:-1] + url + attr(0))
+                    print(fg(2) + root[:-1] + url + attr(0))
                     return root[:-1] + url
                 else:
                     print(fg(1) + 'invalid' + attr(0))
                     return None
             else:  # 'link'
                 if validate_url(root + url):
-                    # print(fg(2) + root + url + attr(0))
+                    print(fg(2) + root + url + attr(0))
                     return root + url
                 else:
                     print(fg(1) + 'invalid' + attr(0))
@@ -140,13 +140,21 @@ def flatten(nested_list):
 
 
 def scrape(url, queue, roots):
+    """Scrape data for given url
+        :param url:
+        :param queue:
+        :param roots:
+        :return result:
+    """
     queue.loc[queue['url'] == url, 'status'] = '+'
     root = roots['root'].str.lower().apply(lambda x: x in url).to_frame()
     root = root[root.root]
     condition = (roots.loc[roots.index.isin(root[root.root].index), 'children'] > 0).values
-    if condition:
+    # print((roots.loc[roots.index.isin(root[root.root].index), 'children'] > 0).values)
+    # print(condition[0])
+    if len(condition) == 1 and condition[0]:
         parsed = scraper.parse_url(url)
-        if parsed['type'] is not None and condition:
+        if parsed['type'] is not None:
             # print(fg('green') + url + attr(0))
             roots.loc[root.index, 'children'] -= 1
             result = parsed
@@ -160,14 +168,20 @@ def scrape(url, queue, roots):
 
 
 def fix(child, roots):
+    """Try to fix children url (relative or any other) to full-path-url with info about root and category
+        :param child:
+        :param roots:
+        :return result:
+    """
     link, root = child
     index = roots['root'].str.lower().apply(lambda x: x in root).to_frame()
     index = index[index.root]
     condition = (roots.loc[roots.index.isin(index[index.root].index), 'children'] > 0).values
-    if condition:
+    # print(condition[0])
+    if len(condition) == 1 and condition[0]:
         check = fix_url(link, root)
         if check != '' and check is not None:
-            print(fg('yellow') + check + attr(0))
+            # print(fg('yellow') + check + attr(0))
             # pprint(roots.loc[roots.index.isin(index.index), 'root'])
             result = (check,
                       roots.loc[roots.index.isin(index.index), 'root'].values[0],
@@ -183,11 +197,18 @@ def fix(child, roots):
 
 
 def manage(queue, roots, dataframe):
+    """Manage data for given websites
+        :param queue:
+        :param roots:
+        :param dataframe:
+        :return queue:
+        :return dataframe:
+    """
     print(roots)
     # next((x for x in a if x in str), False)  # find first substring from list
     scraped = [x for x in
-               init.parallel_starmap(scrape, [(url, queue, roots) for url in queue.loc[queue['status'] != '+', 'url']])
-               if x is not None]
+               init.parallel(scrape, [(url, queue, roots) for url in queue.loc[queue['status'] != '+', 'url']],
+                             mode='starmap') if x is not None]
     # pprint(scraped)
 
     appendix = pandas.DataFrame.from_records(scraped).dropna(how='all')
@@ -205,10 +226,9 @@ def manage(queue, roots, dataframe):
     # pprint(children)
     # input('Press Enter to continue...')
 
-    fixed = [x for x in init.parallel_starmap(fix, [(child, roots) for child in children]) if x is not None]
+    fixed = [x for x in init.parallel(fix, [(child, roots) for child in children], mode='starmap') if x is not None]
     # pprint(fixed)
     # input('Press Enter to continue...')
-    # todo if root.children == 0, clear queue for this root and never add new links
     # todo add changed children for parent link in appendix
     children = pandas.DataFrame\
         .from_records(fixed, columns=['url', 'root', 'category'])\
@@ -217,17 +237,24 @@ def manage(queue, roots, dataframe):
     children['status'] = '-'
     # pprint(children)
     # input('Press Enter to continue...')
+
     queue = queue.append(children, ignore_index=True)
     queue = queue[~queue.duplicated(subset=['url'], keep=False)]
     queue = queue.loc[~queue['root'].isin(roots.loc[roots['children'] <= 0, 'root'].values)]
     # pprint(queue)
-    pprint(queue.loc[queue['status'] == '-', 'root'].unique())
-    pprint(roots.loc[roots['children'] <= 0, 'root'].unique())
+    # pprint(queue.loc[queue['status'] == '-', 'root'].unique())
+    # pprint(roots.loc[roots['children'] <= 0, 'root'].unique())
     # input('Press Enter to continue...')
 
     if (roots.equals(roots.loc[roots['children'] <= 0]) or queue.equals(queue.loc[queue['status'] == '+'])) or \
             numpy.array_equal(queue.loc[queue['status'] == '-', 'root'].unique(),
                               roots.loc[roots['children'] <= 0, 'root'].unique()):
+        dataframe['purpose'] = ''
+        dataframe['category'] = ''
+        for i in roots.index:
+            dataframe.loc[dataframe['root'] == roots['root'][i], 'category'] = roots['category'][i]
+            dataframe.loc[dataframe['root'] == roots['root'][i], 'purpose'] = roots['purpose'][i]
+
         return queue, dataframe
     else:
         return manage(queue, roots, dataframe)

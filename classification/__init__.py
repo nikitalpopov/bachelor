@@ -1,10 +1,10 @@
 import init
 import pandas
+from colored import fg, attr
+from pprint import pprint
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
-from pprint import pprint
-from colored import fg, attr
 
 
 def predict(train, test, model):
@@ -21,6 +21,17 @@ def predict(train, test, model):
     clf = joblib.load(model)
 
     return pandas.Series(clf.predict(tst))
+
+
+def assert_class_to_root(dataframes):
+    classes = pandas.DataFrame(columns=['root', 'prediction', 'count'])
+    for dataframe in dataframes:
+        classes = pandas.concat(
+            [classes, dataframe.groupby(['root', 'prediction'])['root'].size().reset_index(name='count')],
+            axis=0, ignore_index=True).reset_index(drop=True)
+    # pprint(classes.loc[classes[classes['prediction'] != 'invalid'].groupby('root')['count'].max()])
+    # pprint(classes.loc[classes[classes['prediction'] != 'invalid'].groupby('root')['count'].idxmax()])
+    return classes[classes['prediction'] != 'invalid']
 
 
 def classify(dataframe):
@@ -50,14 +61,20 @@ def classify(dataframe):
         (sci, test, init.SCIENCE_MODEL),
         (oth, test, init.OTHER_MODEL)
     ]
+    predicted = init.parallel(predict, parameters, mode='starmap')
 
-    predicted = init.parallel_starmap(predict, parameters)
+    uni, sci, oth = pandas.concat((predicted[0].rename('prediction'),
+                                   test[['category', 'url', 'root']].reset_index(drop=True)), axis=1), \
+                    pandas.concat((predicted[1].rename('prediction'),
+                                   test[['category', 'url', 'root']].reset_index(drop=True)), axis=1), \
+                    pandas.concat((predicted[2].rename('prediction'),
+                                   test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
 
-    return {
-        'university': pandas.concat((test[['category', 'url', 'root']].copy().reset_index(),
-                                     predicted[0].rename('prediction')), axis=1),
-        'science': pandas.concat((test[['category', 'url', 'root']].copy().reset_index(),
-                                  predicted[1].rename('prediction')), axis=1),
-        'other': pandas.concat((test[['category', 'url', 'root']].copy().reset_index(),
-                                predicted[2].rename('prediction')), axis=1)
-    }
+    parameters = [
+        (init.UNIVERSITY_PREDICTED, uni),
+        (init.SCIENCE_PREDICTED, sci),
+        (init.OTHER_PREDICTED, oth)
+    ]
+    init.parallel(init.get_output, parameters, mode='starmap')
+    results = assert_class_to_root([uni, sci, oth])
+    init.get_output(init.RESULTS, results)

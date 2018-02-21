@@ -1,7 +1,7 @@
 import csv
+import nltk
 import pandas
 import pymorphy2
-import nltk
 import string
 from nltk.corpus import stopwords
 

@@ -1,9 +1,9 @@
 import manager
-import mechanicalsoup
 import ftfy
+import mechanicalsoup
 from bs4 import Comment
-from pprint import pprint
 from colored import fg, attr
+from pprint import pprint
 
 
 def parse_url(url):
@@ -21,7 +21,7 @@ def parse_url(url):
     except:
         return {'url': None, 'type': None, 'text': None, 'children': None, 'meta': None, 'title': None}
 
-    print(fg(2) + str(response.status_code) + attr(0), actual_url)
+    # print(fg(2) + str(response.status_code) + attr(0), actual_url)
 
     if browser.get_current_page() and response.status_code < 400:
         webpage = browser.get_current_page()
