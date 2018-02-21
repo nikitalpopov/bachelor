@@ -1,46 +1,49 @@
 20
-university http://bmstu.ru/
-university http://gubkin.ru/
-university http://www.kstu.ru/
-university https://kubsu.ru/
-university https://mai.ru/
-university https://mipt.ru/
-university http://misis.ru/
-university https://msu.ru/
-university https://petrsu.ru/
-university http://www.rudn.ru/
-university http://spbu.ru/
-university https://tpu.ru/
-university http://tsu.ru/
-university https://unn.ru/
-university https://vsu.ru/
-institute http://binran.ru/
-institute http://idbras.comcor.ru/
-institute http://ginras.ru/
-institute http://ibp-ran.ru/
-institute http://ibpm.ru/
-institute http://ibppm.ru/
-institute http://ihna.ru/
-institute http://ippras.ru/
-institute http://issras.ru/
-institute http://kibb.knc.ru/
-institute http://paleo.ru/
-institute https://protres.ru/
-institute http://www.icb.psn.ru/
-institute http://issp.psn.ru/
-institute http://vigg.ru/
-other http://eda.ru/
-other https://esquire.ru/
-other https://habrahabr.ru/
-other http://kaspersky.ru/
-other https://kinopoisk.ru/
-other http://knijky.ru
-other http://kremlin.ru/
-other https://kudago.com/
-other http://losko.ru/
-other http://mashportal.ru/
-other https://realty.rbc.ru/
-other http://rollingstone.ru/
-other https://ru.wikipedia.org/
-other https://vc.ru/
-other http://vokrugsveta.ru/
+train other abc
+train other 14fr.tf
+train other http://12sdkf;l3.ru/
+train other http://www.alpinabook.ru/
+train other http://eda.ru/
+train other http://esquire.ru/
+train other http://habrahabr.ru/
+train other http://lampa.live/
+train other http://kinopoisk.ru/
+train other http://kremlin.ru/
+train other http://kudago.com/
+train other http://losko.ru/
+train other http://mashportal.ru/
+train other http://realty.rbc.ru/
+train university http://bmstu.ru/
+train university http://gubkin.ru/
+train university http://www.kstu.ru/
+train university http://kubsu.ru/
+train university http://mai.ru/
+train university http://mipt.ru/
+train university http://misis.ru/
+train university http://msu.ru/
+train university http://petrsu.ru/
+train university http://www.rudn.ru/
+train university http://spbu.ru/
+train institute http://binran.ru/
+train institute http://idbras.comcor.ru/
+train institute http://ginras.ru/
+train institute http://ibp-ran.ru/
+train institute http://ibpm.ru/
+train institute http://ibppm.ru/
+train institute http://ihna.ru/
+train institute http://ippras.ru/
+train institute http://issras.ru/
+train institute http://kibb.knc.ru/
+train institute http://paleo.ru/
+validate other http://rollingstone.ru/
+validate other http://ru.wikipedia.org/
+validate university http://tpu.ru/
+validate university http://tsu.ru/
+validate institute https://protres.ru/
+validate institute http://www.icb.psn.ru/
+test other http://vc.ru/
+test other http://vokrugsveta.ru/
+test university http://unn.ru/
+test university http://vsu.ru/
+test institute http://issp.psn.ru/
+test institute http://vigg.ru/

@@ -1,60 +1,84 @@
+import os
 import pandas
+import platform
+from colored import fg, attr
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
+from pprint import pprint
 
 
-def init_from_file(file):
-    categories, urls = [], []
-    with open(file, 'r') as input_file:
-        n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)
-        for line in input_file:
-            row = line.split()
-            categories.append(row[0])
-            urls.append(row[1])
-
-    return n, categories, urls
-
-
-def get_output(output, categories, urls):
-    results = []
-    [results.append((categories[i], urls[i])) for i in range(len(urls))]
-    results = pandas.DataFrame(results, columns=['predicted', 'url'])
-    results.to_csv(output, sep=',', encoding='utf-8')
-    print('Result:')
-    print(results)
+def notify(title, subtitle, text, sound='Glass'):
+    """Send os notification
+        :param title:
+        :param subtitle:
+        :param text:
+        :param sound:
+    """
+    print()
+    print(fg(8) + text + attr(0))
+    if subtitle != '':
+        print(fg(8) + subtitle + attr(0))
     print()
 
+    # macOS notification
+    if platform.system() == 'Darwin':
+        os.system("""osascript -e 'display notification "{}" with title "{}" subtitle "{}" sound name "{}"'""".
+                  format(text, title, subtitle, sound))
+        # os.system("""say -v Alex {}""".format(text))
 
-# Init variables
-counter = []
-children = []
-queue = []
+
+def parallel(func, parameters, mode='map', threads=cpu_count() - 1):
+    """Run function with multithreading"""
+    results = None
+    # Make the Pool of workers
+    with ThreadPool(threads) as pool:
+        if mode == 'map':
+            results = pool.map(func, parameters)
+        if mode == 'starmap':
+            results = pool.starmap(func, parameters)
+
+        pool.close()
+        pool.join()
+
+    return results
+
+
+def from_file(file):
+    """Get initial data from file
+        :param file: path to .txt file
+        :return n: num of children pages of each website
+        :return data: category - url pairs
+    """
+    with open(file, 'r') as input_file:
+        n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)
+        data = pandas.read_csv(input_file, sep=" ", header=None, names=['purpose', 'category', 'url'])
+
+    return n, data
+
+
+def get_output(output, results):
+    """Write to .csv file and print results"""
+    # print(fg(2) + 'Predicted' + attr(0))
+    # pprint(results)
+    try:
+        results.to_csv(output, sep=',', encoding='utf-8')
+    except:
+        print(fg(1) + 'something wrong with init.get_output()' + attr(0))
+
+
+URLS = 'init/urls.txt'
+TEST = 'init/test.txt'
 # MUST BE .csv!
-TRAIN_DATA = 'train_data.csv'
-TRAIN_TOKENS = 'train_tokens.csv'
-TEST_DATA = 'test_data.csv'
-TEST_TOKENS = 'test_tokens.csv'
+TRAIN_DATA = 'data/train_data.csv'
+TRAIN_TOKENS = 'data/train_tokens.csv'
+TEST_DATA = 'data/test_data.csv'
+TEST_TOKENS = 'data/test_tokens.csv'
 # MUST BE .json!
-TREES = 'trees.json'
-MODEL = 'model.pkl'
-RESULTS = 'results.txt'
-
-
-# Ending of non-acceptable children link
-file = open('init/endings.txt', 'r')
-last = file.read().splitlines()
-last = tuple(last + [ending.upper() for ending in last])
-
-# Make the Pool of workers
-from multiprocessing.dummy import Pool as ThreadPool
-pool = ThreadPool(4)
-
-print('Getting array of urls...')
-# Get all urls from .txt to array of strings
-num, categories, urls = init_from_file('init/urls.txt')
-num += 1
-print(urls)
-print()
-
-[children.append([]) for _ in range(len(urls))]  # children[i] == array of children urls for urls[i]
-[counter.append(0) for _ in range(len(urls))]  # counter[i] == num of loaded subpages for urls[i]
-print(counter)
-print()
+# TREES = 'trees.json'
+UNIVERSITY_MODEL = 'data/university.pkl'
+SCIENCE_MODEL = 'data/science.pkl'
+OTHER_MODEL = 'data/other.pkl'
+UNIVERSITY_PREDICTED = 'data/university.csv'
+SCIENCE_PREDICTED = 'data/science.csv'
+OTHER_PREDICTED = 'data/other.csv'
+RESULTS = 'data/results.csv'
