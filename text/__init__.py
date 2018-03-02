@@ -2,8 +2,11 @@ import csv
 import nltk
 import pandas
 import pymorphy2
+import re
 import string
 from nltk.corpus import stopwords
+from pprint import pprint
+from yandex import Translater
 
 
 def find_between(string, first, last):
@@ -131,12 +134,40 @@ def parse_data(input, output, engine='pymorphy', is_test=False):
     return pandas.read_csv(output, sep=',', encoding='utf-8')
 
 
-def parse_text(input, output, engine='pymorphy'):
-    dataframe = pandas.read_csv(input, sep=',', encoding='utf-8', na_filter=False)
+def translate(translator, dataframe, writer, output):
+    for i, row in dataframe.iterrows():
+        text = []
+        for sentence in re.split(r"\.", row['text']):
+            translator.set_text(sentence)
+            text.append(translator.translate())
+        dataframe.at[i, 'text'] = '. '.join(text)
+        translator.set_text(row['title'])
+        dataframe.at[i, 'title'] = translator.translate()
+        # translator.set_text(row['text'])
+        # dataframe.at[i, 'text'] = translator.translate()
+    dataframe.to_excel(writer, 'translated')
+    dataframe.to_csv(output, sep=',', encoding='utf-8')
+
+
+def parse_text(dataframe, input, output, engine='pymorphy'):
+    writer = pandas.ExcelWriter('data/data.xlsx')
+    dataframe.to_excel(writer, 'train')
+    dataframe.to_csv(input, sep=',', encoding='utf-8', index=False)
+
+    # yandex
+    translator = Translater()
+    translator.set_key('trnsl.1.1.20180226T103240Z.6fce3fe0fec57a9b.5e8d06d6be9627444be09c88da19273d8d337848')
+    translator.set_from_lang('ru')
+    translator.set_to_lang('en')
+    translator.set_hint('ru', 'en')
+    # translate(translator, dataframe.copy(), writer, 'data/translated.csv')
+
     if engine == 'nltk':
         pass
     else:
+        # translated.text = clear_text(translated.text)
         dataframe.text = clear_text(dataframe.text)
+    dataframe.to_excel(writer, 'tokens')
     dataframe.to_csv(output, sep=',', encoding='utf-8')
 
     return dataframe

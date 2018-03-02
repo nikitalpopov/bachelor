@@ -2,12 +2,13 @@ import os
 import pandas
 import platform
 from colored import fg, attr
+from datetime import datetime
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
 from pprint import pprint
 
 
-def notify(title, subtitle, text, sound='Glass'):
+def notify(title, text, subtitle='', sound='Glass'):
     """Send os notification
         :param title:
         :param subtitle:
@@ -24,7 +25,7 @@ def notify(title, subtitle, text, sound='Glass'):
     if platform.system() == 'Darwin':
         os.system("""osascript -e 'display notification "{}" with title "{}" subtitle "{}" sound name "{}"'""".
                   format(text, title, subtitle, sound))
-        # os.system("""say -v Alex {}""".format(text))
+        os.system("""say -v Alex {} {}""".format(text, ' and ' + subtitle if subtitle else ''))
 
 
 def parallel(func, parameters, mode='map', threads=cpu_count() - 1):
@@ -66,19 +67,29 @@ def get_output(output, results):
         print(fg(1) + 'something wrong with init.get_output()' + attr(0))
 
 
-URLS = 'init/urls.txt'
-TEST = 'init/test.txt'
-# MUST BE .csv!
-TRAIN_DATA = 'data/train_data.csv'
-TRAIN_TOKENS = 'data/train_tokens.csv'
-TEST_DATA = 'data/test_data.csv'
-TEST_TOKENS = 'data/test_tokens.csv'
-# MUST BE .json!
-# TREES = 'trees.json'
-UNIVERSITY_MODEL = 'data/university.pkl'
-SCIENCE_MODEL = 'data/science.pkl'
-OTHER_MODEL = 'data/other.pkl'
-UNIVERSITY_PREDICTED = 'data/university.csv'
-SCIENCE_PREDICTED = 'data/science.csv'
-OTHER_PREDICTED = 'data/other.csv'
-RESULTS = 'data/results.csv'
+INIT_TIME = datetime.now()
+INIT_PREFIX = 'init/'
+DATA_PREFIX = 'data/'
+
+UNIVERSITY_CATEGORY = 'newspaper'
+SCIENCE_CATEGORY = 'dogs'
+OTHER_CATEGORY = 'house'
+
+URLS = INIT_PREFIX + 'urls.txt'
+TEST = INIT_PREFIX + 'test.txt'
+
+TRAIN_DATA = DATA_PREFIX + 'train_data.csv'
+TRAIN_TOKENS = DATA_PREFIX + 'train_tokens.csv'
+TEST_DATA = DATA_PREFIX + 'test_data.csv'
+TEST_TOKENS = DATA_PREFIX + 'test_tokens.csv'
+
+UNIVERSITY_MODEL = DATA_PREFIX + UNIVERSITY_CATEGORY + '.pkl'
+SCIENCE_MODEL = DATA_PREFIX + SCIENCE_CATEGORY + '.pkl'
+OTHER_MODEL = DATA_PREFIX + OTHER_CATEGORY + '.pkl'
+
+UNIVERSITY_PREDICTED = DATA_PREFIX + UNIVERSITY_CATEGORY + '.csv'
+SCIENCE_PREDICTED = DATA_PREFIX + SCIENCE_CATEGORY + '.csv'
+OTHER_PREDICTED = DATA_PREFIX + OTHER_CATEGORY + '.csv'
+
+RESULTS = DATA_PREFIX + 'results.csv'
+EXCEL = DATA_PREFIX + 'classification_{date:%Y-%m-%d_%H:%M:%S}.xlsx'.format(date=INIT_TIME)

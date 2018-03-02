@@ -204,7 +204,6 @@ def manage(queue, roots, dataframe):
         :return queue:
         :return dataframe:
     """
-    # print(roots)
     # next((x for x in a if x in str), False)  # find first substring from list
     scraped = [x for x in
                init.parallel(scrape, [(url, queue, roots) for url in queue.loc[queue['status'] != '+', 'url']],

@@ -29,9 +29,12 @@ def assert_class_to_root(dataframes):
         classes = pandas.concat(
             [classes, dataframe.groupby(['root', 'prediction'])['root'].size().reset_index(name='count')],
             axis=0, ignore_index=True).reset_index(drop=True)
-    # pprint(classes.loc[classes[classes['prediction'] != 'invalid'].groupby('root')['count'].max()])
-    # pprint(classes.loc[classes[classes['prediction'] != 'invalid'].groupby('root')['count'].idxmax()])
-    return classes[classes['prediction'] != 'invalid']
+    result = classes[classes['prediction'] != 'unclassified'].groupby(['root']).head(1).reset_index(drop=True)
+    roots = classes.groupby(['root']).head(1).reset_index(drop=True)
+    roots.loc[roots['root'].isin(result['root']), ['prediction', 'count']] = \
+        result.loc[result['root'].isin(roots['root']), ['prediction', 'count']].values
+
+    return roots
 
 
 def classify(dataframe):
@@ -39,20 +42,20 @@ def classify(dataframe):
     validate = dataframe.loc[dataframe['purpose'].isin(['validate'])].copy()
 
     uni = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    uni.loc[uni['category'] != 'university', 'category'] = 'invalid'
-    # print(fg(2) + 'University' + attr(0))
+    uni.loc[uni['category'] != init.UNIVERSITY_CATEGORY, 'category'] = 'unclassified'
+    # print(fg(2) + init.UNIVERSITY_CATEGORY + attr(0))
     # pprint(uni)
     # print()
 
     sci = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    sci.loc[sci['category'] != 'institute', 'category'] = 'invalid'  # todo replace to 'science' when actual
-    # print(fg(2) + 'Institute' + attr(0))
+    sci.loc[sci['category'] != init.SCIENCE_CATEGORY, 'category'] = 'unclassified'
+    # print(fg(2) + init.SCIENCE_CATEGORY + attr(0))
     # pprint(sci)
     # print()
 
     oth = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    oth.loc[oth['category'] != 'other', 'category'] = 'invalid'
-    # print(fg(2) + 'Other' + attr(0))
+    oth.loc[oth['category'] != init.OTHER_CATEGORY, 'category'] = 'unclassified'
+    # print(fg(2) + init.OTHER_CATEGORY + attr(0))
     # pprint(oth)
     # print()
 
@@ -70,11 +73,16 @@ def classify(dataframe):
                     pandas.concat((predicted[2].rename('prediction'),
                                    test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
 
-    parameters = [
-        (init.UNIVERSITY_PREDICTED, uni),
-        (init.SCIENCE_PREDICTED, sci),
-        (init.OTHER_PREDICTED, oth)
-    ]
-    init.parallel(init.get_output, parameters, mode='starmap')
+    # parameters = [
+    #     (init.UNIVERSITY_PREDICTED, uni),
+    #     (init.SCIENCE_PREDICTED, sci),
+    #     (init.OTHER_PREDICTED, oth)
+    # ]
+    # init.parallel(init.get_output, parameters, mode='starmap')
+    writer = pandas.ExcelWriter(init.EXCEL)
+    uni.to_excel(writer, init.UNIVERSITY_CATEGORY)
+    sci.to_excel(writer, init.SCIENCE_CATEGORY)
+    oth.to_excel(writer, init.OTHER_CATEGORY)
     results = assert_class_to_root([uni, sci, oth])
+    results.to_excel(writer, 'results')
     init.get_output(init.RESULTS, results)
