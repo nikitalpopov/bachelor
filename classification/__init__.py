@@ -15,9 +15,11 @@ def predict(train, test, model):
     """
     coder = HashingVectorizer()
     trn = coder.fit_transform(train.text)
+    pprint(trn)
     clf = LinearSVC().fit(trn, train.category)
     joblib.dump(clf, model)
     tst = coder.transform(test.text.values.astype('U'))
+    pprint(tst)
     clf = joblib.load(model)
 
     return pandas.Series(clf.predict(tst))
@@ -40,6 +42,8 @@ def assert_class_to_root(dataframes):
 def classify(dataframe):
     test = dataframe.loc[dataframe['purpose'].isin(['test'])].copy()
     validate = dataframe.loc[dataframe['purpose'].isin(['validate'])].copy()
+    # pprint(test)
+    # print()
 
     uni = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
     uni.loc[uni['category'] != init.UNIVERSITY_CATEGORY, 'category'] = 'unclassified'

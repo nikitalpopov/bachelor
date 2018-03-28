@@ -4,8 +4,10 @@ import pandas
 import pymorphy2
 import re
 import string
+from colored import fg, attr
 from nltk.corpus import stopwords
 from pprint import pprint
+# from translate import translator
 from yandex import Translater
 
 
@@ -134,22 +136,50 @@ def parse_data(input, output, engine='pymorphy', is_test=False):
     return pandas.read_csv(output, sep=',', encoding='utf-8')
 
 
-def translate(translator, dataframe, writer, output):
+def g(sentences):
+    idx = 0
+    text_length = 0
+    for i, s in enumerate(sentences):
+        if text_length + len(s) > 500:
+            yield ' '.join(sentences[idx:i])
+            text_length = len(s)
+            idx = i
+        else:
+            text_length += len(s)
+    yield ' '.join(sentences[idx:])
+
+
+def translate(translater, dataframe, writer, output):
     for i, row in dataframe.iterrows():
+        sentences = nltk.sent_tokenize(row['text'])
         text = []
-        for sentence in re.split(r"\.", row['text']):
-            translator.set_text(sentence)
-            text.append(translator.translate())
-        dataframe.at[i, 'text'] = '. '.join(text)
-        translator.set_text(row['title'])
-        dataframe.at[i, 'title'] = translator.translate()
-        # translator.set_text(row['text'])
-        # dataframe.at[i, 'text'] = translator.translate()
+        pprint(sentences)
+        pprint(g(sentences))
+        for s in g(sentences):
+            print(fg('yellow') + s + attr(0))
+            translater.set_text(s)
+            # text.append(translator('ru', 'en', s))
+            text.append(translater.translate())
+        pprint(text)
+        # py-translate
+        dataframe.at[i, 'text'] = ' '.join(text)
+        # dataframe.at[i, 'title'] = '. '.join(translator('ru', 'en', row['title']))
+        translater.set_text(row['title'])
+        dataframe.at[i, 'title'] = '. '.join(translater.translate())
+        # yandex-translate
+        # text = []
+        # for sentence in nltk.sent_tokenize(row['text']):
+        #     translater.set_text(sentence)
+        #     text.append(translater.translate())
+        # dataframe.at[i, 'text'] = '. '.join(text)
+        # translater.set_text(row['title'])
+        # dataframe.at[i, 'title'] = '. '.join(translator('ru', 'en', row['title']))
     dataframe.to_excel(writer, 'translated')
     dataframe.to_csv(output, sep=',', encoding='utf-8')
 
 
 def parse_text(dataframe, input, output, engine='pymorphy'):
+    nltk.download('punkt')
     writer = pandas.ExcelWriter('data/data.xlsx')
     dataframe.to_excel(writer, 'train')
     dataframe.to_csv(input, sep=',', encoding='utf-8', index=False)

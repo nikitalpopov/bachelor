@@ -14,7 +14,7 @@ message = 'initializing data...'
 begin = datetime.now()
 init.notify(title, message)
 # Get all urls from .txt to array of strings
-children_count, categories = init.from_file(init.TEST)  # init.URLS for all urls, init.TEST for test set
+children_count, categories = init.from_file(init.URLS)  # init.URLS for all urls, init.TEST for test set
 # pprint(categories)
 
 # Results of scraping: 'url', 'type', 'text'
@@ -39,7 +39,7 @@ message = 'parsing websites...'
 init.notify(title, message)
 data = pandas.DataFrame()
 queue, data = manager.manage(queue, roots, data)
-# pprint(data)
+# input()
 
 message = 'parsing data...'
 init.notify(title, message)
@@ -49,7 +49,7 @@ except OSError as e:
     if e.errno != errno.EEXIST:
         raise
 data = text.parse_text(data, init.TRAIN_DATA, init.TRAIN_TOKENS, 'pymorphy')
-# pprint(data)
+# input()
 
 message = 'classification...'
 init.notify(title, message)

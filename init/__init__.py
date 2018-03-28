@@ -71,9 +71,9 @@ INIT_TIME = datetime.now()
 INIT_PREFIX = 'init/'
 DATA_PREFIX = 'data/'
 
-UNIVERSITY_CATEGORY = 'newspaper'
-SCIENCE_CATEGORY = 'dogs'
-OTHER_CATEGORY = 'house'
+UNIVERSITY_CATEGORY = 'university'  # 'newspaper'
+SCIENCE_CATEGORY = 'institute'  # 'dogs'
+OTHER_CATEGORY = 'other'  # 'house'
 
 URLS = INIT_PREFIX + 'urls.txt'
 TEST = INIT_PREFIX + 'test.txt'
