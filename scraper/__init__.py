@@ -1,9 +1,29 @@
+import init
 import manager
 import ftfy
+import lxml.html
 import mechanicalsoup
+import requests
+from adblock import AdRemover
 from bs4 import Comment
+from bs4 import BeautifulSoup
 from colored import fg, attr
+from datetime import datetime
+from lxml.etree import tostring
 from pprint import pprint
+
+
+def get_actual_url(url):
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), url)
+    try:
+        r = requests.get(url, timeout=100)
+    except:
+        return None
+
+    if r.url and r.status_code == requests.codes.ok:
+        return r.url
+    else:
+        return None
 
 
 def parse_url(url):
@@ -21,7 +41,8 @@ def parse_url(url):
     except:
         return {'url': None, 'type': None, 'text': None, 'children': None, 'meta': None, 'title': None}
 
-    # print(fg(2) + str(response.status_code) + attr(0), actual_url)
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
+    #       fg(2) + str(response.status_code) + attr(0), actual_url)
 
     if browser.get_current_page() and response.status_code < 400:
         webpage = browser.get_current_page()
@@ -40,9 +61,20 @@ def parse_url(url):
     title = ''
 
     if ("text/html" in response.headers["content-type"]) and webpage:
-        # if url != actual_url:
-        #     print(url, '->', actual_url)
-        # print(get_root_domain(actual_url))
+        # # Remove ads
+        # remover = AdRemover(*['data/' + rule.rsplit('/', 1)[-1] for rule in init.ADBLOCK_RULES])
+        # try:
+        #     html = requests.get(url).text
+        #     document = lxml.html.document_fromstring(html)
+        #     remover.remove_ads(document)
+        #     clean_html = tostring(document).decode("utf-8")
+        #     webpage = BeautifulSoup(clean_html, 'lxml')
+        # except ValueError:
+        #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
+        #     print('ValueError')
+        # except TypeError:
+        #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
+        #     print('TypeError')
 
         # Remove all comments
         for comments in webpage.findAll(text=lambda text: isinstance(text, Comment)):
@@ -57,7 +89,7 @@ def parse_url(url):
         if webpage.find('title') is not None:
             title = webpage.find('title').text
         body = webpage.find('body')
-        page_text = webpage.get_text()
+        page_text = webpage.get_text(" ")
 
         # Get all children links at webpage
         if body:
@@ -65,7 +97,6 @@ def parse_url(url):
                 children.append(link.get('href'))
             children = [child for child in list(filter(None, list(set(children)))) if not child.startswith('#')]
             # pprint(children)
-            # print(children)
         else:
             page_type = 0
 

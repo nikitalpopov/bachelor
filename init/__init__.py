@@ -1,6 +1,8 @@
+import errno
 import os
 import pandas
 import platform
+import requests
 from colored import fg, attr
 from datetime import datetime
 from multiprocessing import cpu_count
@@ -16,9 +18,9 @@ def notify(title, text, subtitle='', sound='Glass'):
         :param sound:
     """
     print()
-    print(fg(8) + text + attr(0))
+    print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(8) + text + attr(0))
     if subtitle != '':
-        print(fg(8) + subtitle + attr(0))
+        print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(8) + subtitle + attr(0))
     print()
 
     # macOS notification
@@ -57,9 +59,23 @@ def from_file(file):
     return n, data
 
 
+def adblock():
+    try:
+        os.makedirs('./data')
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+    for rule in ADBLOCK_RULES:
+        r = requests.get(rule)
+
+        with open('data/' + rule.rsplit('/', 1)[-1], 'wb') as f:
+            f.write(r.content)
+
+
 def get_output(output, results):
     """Write to .csv file and print results"""
-    # print(fg(2) + 'Predicted' + attr(0))
+    # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0), fg(2) + 'Predicted' + attr(0))
     # pprint(results)
     try:
         results.to_csv(output, sep=',', encoding='utf-8')
@@ -69,7 +85,7 @@ def get_output(output, results):
 
 INIT_TIME = datetime.now()
 INIT_PREFIX = 'init/'
-DATA_PREFIX = 'data/'
+DATA_PREFIX = 'data/{date:%Y-%m-%d_%H:%M:%S}/'.format(date=INIT_TIME)
 
 UNIVERSITY_CATEGORY = 'university'  # 'newspaper'
 SCIENCE_CATEGORY = 'institute'  # 'dogs'
@@ -92,4 +108,9 @@ SCIENCE_PREDICTED = DATA_PREFIX + SCIENCE_CATEGORY + '.csv'
 OTHER_PREDICTED = DATA_PREFIX + OTHER_CATEGORY + '.csv'
 
 RESULTS = DATA_PREFIX + 'results.csv'
-EXCEL = DATA_PREFIX + 'classification_{date:%Y-%m-%d_%H:%M:%S}.xlsx'.format(date=INIT_TIME)
+EXCEL = DATA_PREFIX + 'classification.xlsx'
+
+ADBLOCK_RULES = ['https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt',
+                 'https://filters.adtidy.org/extension/chromium/filters/1.txt']
+
+DEPTH = 1

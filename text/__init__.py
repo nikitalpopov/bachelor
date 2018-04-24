@@ -5,6 +5,7 @@ import pymorphy2
 import re
 import string
 from colored import fg, attr
+from datetime import datetime
 from nltk.corpus import stopwords
 from pprint import pprint
 # from translate import translator
@@ -97,7 +98,8 @@ def my_tokenizer(s, morph):
 def tokenization_nltk(dataframe, csv_file, is_test=False):
     # firstly let's apply nltk tokenization
     dataframe.text = nltk.word_tokenize(dataframe.text)
-    print(dataframe)
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
+    # pprint(dataframe)
 
     # let's delete punctuation symbols
     dataframe.text = [i for i in dataframe.text if (i not in string.punctuation)]
@@ -179,17 +181,17 @@ def translate(translater, dataframe, writer, output):
 
 
 def parse_text(dataframe, input, output, engine='pymorphy'):
-    nltk.download('punkt')
+    # nltk.download('punkt')
     writer = pandas.ExcelWriter('data/data.xlsx')
     dataframe.to_excel(writer, 'train')
     dataframe.to_csv(input, sep=',', encoding='utf-8', index=False)
 
     # yandex
-    translator = Translater()
-    translator.set_key('trnsl.1.1.20180226T103240Z.6fce3fe0fec57a9b.5e8d06d6be9627444be09c88da19273d8d337848')
-    translator.set_from_lang('ru')
-    translator.set_to_lang('en')
-    translator.set_hint('ru', 'en')
+    # translator = Translater()
+    # translator.set_key('trnsl.1.1.20180226T103240Z.6fce3fe0fec57a9b.5e8d06d6be9627444be09c88da19273d8d337848')
+    # translator.set_from_lang('ru')
+    # translator.set_to_lang('en')
+    # translator.set_hint('ru', 'en')
     # translate(translator, dataframe.copy(), writer, 'data/translated.csv')
 
     if engine == 'nltk':

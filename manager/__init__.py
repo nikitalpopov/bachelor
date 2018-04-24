@@ -3,10 +3,13 @@ import scraper
 import text
 import numpy
 import pandas
+import requests
 import urllib.request
 import urllib.error
 from colored import fg, attr
+from datetime import datetime
 from pprint import pprint
+from urllib import parse
 
 
 def validate_url(url):
@@ -15,41 +18,72 @@ def validate_url(url):
         :return bool:
     """
     try:
-        url.encode('ascii')
+        # url.encode('ascii')
         if url.startswith('mailto:'):
             raise ValueError
-        urllib.request.urlopen(url)
+        # urllib.request.urlopen(url)
+        # r = requests.get(url, timeout=10)
+        # r.raise_for_status()
+        result = scraper.get_actual_url(url)
 
     except ValueError:
-        # print(fg(1) + 'ERR' + attr(0), url, fg(1) + 'is invalid url' + attr(0))
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+        #       fg(1) + 'ERR' + attr(0), url, fg(1) + 'is invalid url' + attr(0))
         return False
 
     except UnicodeEncodeError:
-        # print(fg(1) + 'ERR' + attr(0), url, fg(1) + 'has bad characters' + attr(0))
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+        #       fg(1) + 'ERR' + attr(0), url, fg(1) + 'has bad characters' + attr(0))
         return False
 
     except TimeoutError:
-        # print(fg(1) + 'ERR' + attr(0), url, fg(1) + ':: Operation timed out' + attr(0))
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+        #       fg(1) + 'ERR' + attr(0), url, fg(1) + ':: Operation timed out' + attr(0))
         return False
 
     except ConnectionResetError:
-        # print(fg(1) + 'ERR' + attr(0), url, fg(1) + ':: Connection reset by peer' + attr(0))
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+        #       fg(1) + 'ERR' + attr(0), url, fg(1) + ':: Connection reset by peer' + attr(0))
         return False
 
-    except urllib.error.HTTPError as err:
-        # print(fg(1) + 'ERR' + attr(0), url, fg(1) + str(err.reason) + attr(0))
+    except requests.exceptions.HTTPError as err:
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+        #       fg(1) + 'ERR' + attr(0), url, fg(1) + str(err) + attr(0))
         return False
 
-    except urllib.error.URLError as err:
-        # print(fg(1) + 'ERR' + attr(0), url, fg(1) + str(err.reason) + attr(0))
+    except requests.exceptions.RequestException as err:
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+        #       fg(1) + 'ERR' + attr(0), url, fg(1) + str(err) + attr(0))
         return False
+
+    # except urllib.error.HTTPError as err:
+    #     # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+    #     #       fg(1) + 'ERR' + attr(0), url, fg(1) + str(err.reason) + attr(0))
+    #     return False
+    #
+    # except urllib.error.URLError as err:
+    #     # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0),
+    #     #       fg(1) + 'ERR' + attr(0), url, fg(1) + str(err.reason) + attr(0))
+    #     return False
 
     except:
-        # print(fg(1) + 'ERR' + attr(0), url)
+        # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0), fg(1) + 'ERR' + attr(0), url)
         return False
 
     else:
-        return True
+        if result:
+            return True
+        else:
+            return False
+
+
+def get_root(url):
+    split = parse.urlsplit(url)
+    netloc = split.netloc
+    path = split.path
+    if netloc.startswith('www.'):
+        netloc = netloc[4:]
+    return (netloc + path.rstrip('/')).split('/')[0]
 
 
 def get_root_domain(url):
@@ -83,47 +117,46 @@ def fix_url(url, root):
         :param root: string with root URL
         :return url: fixed accessible url or None
     """
-    # print(fg(6) + url + attr(0))
-
-    # todo try to check whether link is cyrillic
     if root in url:
         if validate_url(url):
-            # print(fg(2) + url + attr(0))
+            # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + url + attr(0))
             return url
         else:
             if not url.endswith('/'):
                 if validate_url(url + '/'):
-                    # print(fg(2) + url + '/' + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + url + '/' + attr(0))
                     return url + '/'
             if url.startswith('https://'):
                 if validate_url(url[:4] + url[5:]):
-                    # print(fg(2) + url[:4] + url[5:] + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
+                    #       fg(2) + url[:4] + url[5:] + attr(0))
                     return url[:4] + url[5:]
                 else:
-                    # print(fg(1) + 'invalid' + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
                     return None
             else:
-                # print(fg(1) + 'invalid' + attr(0))
+                # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
                 return None
     else:
         parsed = get_root_domain(url)
         if parsed == '':
             if url.startswith('/'):  # '/link'
                 if validate_url(root[:-1] + url):
-                    # print(fg(2) + root[:-1] + url + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
+                    #       fg(2) + root[:-1] + url + attr(0))
                     return root[:-1] + url
                 else:
-                    # print(fg(1) + 'invalid' + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
                     return None
             else:  # 'link'
                 if validate_url(root + url):
-                    # print(fg(2) + root + url + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + root + url + attr(0))
                     return root + url
                 else:
-                    # print(fg(1) + 'invalid' + attr(0))
+                    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
                     return None
         else:
-            # print(fg(1) + 'invalid' + attr(0))
+            # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
             return None
 
 
@@ -146,25 +179,16 @@ def scrape(url, queue, roots):
         :param roots:
         :return result:
     """
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
     queue.loc[queue['url'] == url, 'status'] = '+'
-    root = roots['root'].str.lower().apply(lambda x: x in url).to_frame()
-    root = root[root.root]
-    condition = (roots.loc[roots.index.isin(root[root.root].index), 'children'] > 0).values
-    # print((roots.loc[roots.index.isin(root[root.root].index), 'children'] > 0).values)
-    # print(condition[0])
-    if len(condition) == 1 and condition[0]:
+    root = get_root(url)
+    if len(roots.loc[roots[roots.root == root].index, "children"] > 0) == 1 and \
+            (roots.loc[roots[roots.root == root].index, "children"] > 0).values[0]:
         parsed = scraper.parse_url(url)
         if parsed['type'] is not None:
-            print(fg('green') + url + attr(0))
-            roots.loc[root.index, 'children'] -= 1
-            result = parsed
-
-    try:
-        result
-    except NameError:
-        return
-    else:
-        return result
+            roots.loc[roots[roots.root == root].index, "children"] -= 1
+            return parsed
+    return
 
 
 def fix(child, roots):
@@ -173,27 +197,16 @@ def fix(child, roots):
         :param roots:
         :return result:
     """
-    link, root = child
-    index = roots['root'].str.lower().apply(lambda x: x in root).to_frame()
-    index = index[index.root]
-    condition = (roots.loc[roots.index.isin(index[index.root].index), 'children'] > 0).values
-    # print(condition[0])
-    if len(condition) == 1 and condition[0]:
-        check = fix_url(link, root)
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
+    link, root_url = child
+    root = get_root(root_url)
+    if len(roots[roots.root == root].children > 0) == 1 and (roots[roots.root == root].children > 0).values[0]:
+        check = fix_url(link, root_url)
         if check != '' and check is not None:
-            # print(fg('yellow') + check + attr(0))
-            # pprint(roots.loc[roots.index.isin(index.index), 'root'])
-            result = (check,
-                      roots.loc[roots.index.isin(index.index), 'root'].values[0],
-                      roots.loc[roots.index.isin(index.index), 'category'].values[0])
-            # pprint(result)
-
-    try:
-        result
-    except NameError:
-        return
-    else:
-        return result
+            return (check,
+                    roots.loc[roots[roots.root == root].index].root.values[0],
+                    roots.loc[roots[roots.root == root].index].category.values[0])
+    return
 
 
 def manage(queue, roots, dataframe):
@@ -205,55 +218,62 @@ def manage(queue, roots, dataframe):
         :return dataframe:
     """
     # next((x for x in a if x in str), False)  # find first substring from list
-    scraped = [x for x in
-               init.parallel(scrape, [(url, queue, roots) for url in queue.loc[queue['status'] != '+', 'url']],
-                             mode='starmap') if x is not None]
+    scraped = []
+    while len(queue.loc[queue['status'] != '+']) > 0:
+        # if 200 > len(queue.loc[queue['status'] != '+']):
+        #     j = len(queue.loc[queue['status'] != '+'])
+        # else:
+        #     j = 200
+        # scraped = [x for x in init.parallel(scrape, [(url, queue, roots) for url in
+        #                                              queue.loc[queue['status'] != '+', 'url'][0:j]], mode='starmap')
+        #            if x is not None]
+        scraped = [x for x in
+                   init.parallel(scrape, [(url, queue, roots) for url in queue.loc[queue['status'] != '+', 'url']],
+                                 mode='starmap') if x is not None]
     # pprint(scraped)
 
     appendix = pandas.DataFrame.from_records(scraped).dropna(how='all')
     appendix['root'] = ''
-
-    for _, root in roots.iterrows():
-        appendix.loc[appendix['url'].str.contains(root.root), 'root'] = root.root
-    dataframe = dataframe.append(appendix, ignore_index=True)
+    appendix['depth'] = 1. / init.DEPTH
+    init.DEPTH += 1
 
     children = []
-    for root in appendix['url']:
-        for links in appendix.loc[appendix.url == root, 'children']:
-            for link in links:
-                children.append((link, root))
-    # pprint(children)
-    # input('Press Enter to continue...')
+    if len(appendix):
+        for _, root in roots.iterrows():
+            appendix.loc[appendix['url'].str.contains(root.root), 'root'] = root.root
+        dataframe = dataframe.append(appendix, ignore_index=True)
 
+        for root in appendix['url']:
+            for links in appendix.loc[appendix.url == root, 'children']:
+                for link in links:
+                    children.append((link, root))
+
+    # fixed = []
+    # for i in range(int(len(children) / 200)):
+    #     if i * 200 + 199 > len(children):
+    #         j = len(children)
+    #     else:
+    #         j = i * 200 + 199
+    #     fixed.append([x for x in
+    #                   init.parallel(fix, [(child, roots) for child in children[(i * 200):j]], mode='starmap')
+    #                   if x is not None])
     fixed = [x for x in init.parallel(fix, [(child, roots) for child in children], mode='starmap') if x is not None]
-    # pprint(fixed)
-    # input('Press Enter to continue...')
+    # fixed = flatten(fixed)
     # todo add changed children for parent link in appendix
     children = pandas.DataFrame\
         .from_records(fixed, columns=['url', 'root', 'category'])\
         .dropna(how='any')\
         .drop_duplicates(subset='url')
     children['status'] = '-'
-    # pprint(children)
-    # input('Press Enter to continue...')
 
     queue = queue.append(children, ignore_index=True)
     queue = queue[~queue.duplicated(subset=['url'], keep=False)]
     queue = queue.loc[~queue['root'].isin(roots.loc[roots['children'] <= 0, 'root'].values)]
-    # pprint(queue)
-    # pprint(queue.loc[queue['status'] == '-', 'root'].unique())
-    # pprint(roots.loc[roots['children'] <= 0, 'root'].unique())
-    # input('Press Enter to continue...')
 
-    if (roots.equals(roots.loc[roots['children'] <= 0]) or queue.equals(queue.loc[queue['status'] == '+'])) or \
-            numpy.array_equal(queue.loc[queue['status'] == '-', 'root'].unique(),
-                              roots.loc[roots['children'] <= 0, 'root'].unique()):
-        dataframe['purpose'] = ''
-        dataframe['category'] = ''
-        for i in roots.index:
-            dataframe.loc[dataframe['root'] == roots['root'][i], 'category'] = roots['category'][i]
-            dataframe.loc[dataframe['root'] == roots['root'][i], 'purpose'] = roots['purpose'][i]
+    dataframe['purpose'] = ''
+    dataframe['category'] = ''
+    for i in roots.index:
+        dataframe.loc[dataframe['root'] == roots['root'][i], 'category'] = roots['category'][i]
+        dataframe.loc[dataframe['root'] == roots['root'][i], 'purpose'] = roots['purpose'][i]
 
-        return queue, dataframe
-    else:
-        return manage(queue, roots, dataframe)
+    return queue, roots, dataframe
