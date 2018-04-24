@@ -1,4 +1,3 @@
-import errno
 import os
 import pandas
 import platform
@@ -60,12 +59,6 @@ def from_file(file):
 
 
 def adblock():
-    try:
-        os.makedirs('./data')
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-
     for rule in ADBLOCK_RULES:
         r = requests.get(rule)
 

@@ -3,6 +3,7 @@ import init
 import manager
 import scraper
 import text
+import errno
 import numpy
 import os
 import pandas
@@ -14,6 +15,11 @@ title = '🛠 bachelor [' + str(os.getpid()) + ']'
 message = 'initializing data...'
 begin = datetime.now()
 init.notify(title, message)
+try:
+    os.makedirs(init.DATA_PREFIX)
+except OSError as e:
+    if e.errno != errno.EEXIST:
+        raise
 init.adblock()
 
 # Get all urls from .txt to array of strings
