@@ -54,8 +54,9 @@ def from_file(file):
     with open(file, 'r') as input_file:
         n = int(input_file.readline())  # num of sites' subpages needed to be downloaded (including root)
         data = pandas.read_csv(input_file, sep=" ", header=None, names=['purpose', 'category', 'url'])
+        categories = data.category.unique()
 
-    return n, data
+    return n, data, categories
 
 
 def adblock():
@@ -80,25 +81,16 @@ INIT_TIME = datetime.now()
 INIT_PREFIX = 'init/'
 DATA_PREFIX = 'data/{date:%Y-%m-%d_%H:%M:%S}/'.format(date=INIT_TIME)
 
-UNIVERSITY_CATEGORY = 'university'  # 'newspaper'
-SCIENCE_CATEGORY = 'institute'  # 'dogs'
-OTHER_CATEGORY = 'other'  # 'house'
+CATEGORIES = []
 
 URLS = INIT_PREFIX + 'urls.txt'
 TEST = INIT_PREFIX + 'test.txt'
+ROMIP = INIT_PREFIX + 'romip.txt'
 
 TRAIN_DATA = DATA_PREFIX + 'train_data.csv'
 TRAIN_TOKENS = DATA_PREFIX + 'train_tokens.csv'
 TEST_DATA = DATA_PREFIX + 'test_data.csv'
 TEST_TOKENS = DATA_PREFIX + 'test_tokens.csv'
-
-UNIVERSITY_MODEL = DATA_PREFIX + UNIVERSITY_CATEGORY + '.pkl'
-SCIENCE_MODEL = DATA_PREFIX + SCIENCE_CATEGORY + '.pkl'
-OTHER_MODEL = DATA_PREFIX + OTHER_CATEGORY + '.pkl'
-
-UNIVERSITY_PREDICTED = DATA_PREFIX + UNIVERSITY_CATEGORY + '.csv'
-SCIENCE_PREDICTED = DATA_PREFIX + SCIENCE_CATEGORY + '.csv'
-OTHER_PREDICTED = DATA_PREFIX + OTHER_CATEGORY + '.csv'
 
 RESULTS = DATA_PREFIX + 'results.csv'
 EXCEL = DATA_PREFIX + 'classification.xlsx'

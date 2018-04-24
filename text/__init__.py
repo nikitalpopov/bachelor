@@ -1,3 +1,4 @@
+import init
 import csv
 import nltk
 import pandas
@@ -182,7 +183,7 @@ def translate(translater, dataframe, writer, output):
 
 def parse_text(dataframe, input, output, engine='pymorphy'):
     # nltk.download('punkt')
-    writer = pandas.ExcelWriter('data/data.xlsx')
+    writer = pandas.ExcelWriter(init.DATA_PREFIX + 'data.xlsx')
     dataframe.to_excel(writer, 'train')
     dataframe.to_csv(input, sep=',', encoding='utf-8', index=False)
 

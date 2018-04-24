@@ -79,50 +79,24 @@ def classify(dataframe, roots):
     # pprint(test)
     # print()
 
-    uni = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    uni.loc[uni['category'] != init.UNIVERSITY_CATEGORY, 'category'] = 'unclassified'
-    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + init.UNIVERSITY_CATEGORY + attr(0))
-    # pprint(uni)
-    # print()
-
-    sci = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    sci.loc[sci['category'] != init.SCIENCE_CATEGORY, 'category'] = 'unclassified'
-    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + init.SCIENCE_CATEGORY + attr(0))
-    # pprint(sci)
-    # print()
-
-    oth = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    oth.loc[oth['category'] != init.OTHER_CATEGORY, 'category'] = 'unclassified'
-    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + init.OTHER_CATEGORY + attr(0))
-    # pprint(oth)
-    # print()
+    categories = []
+    parameters = []
+    for i in range(len(init.CATEGORIES)):
+        df = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
+        df.loc[df['category'] != init.CATEGORIES[i], 'category'] = 'unclassified'
+        categories.append(df)
+        parameters.append((df, test, init.DATA_PREFIX + init.CATEGORIES[i] + '.pkl'))
 
     # experiment = Experiment(api_key="Dmqg0JpLWqa5lmzvpbcDObE9A")
-    parameters = [
-        (uni, test, init.UNIVERSITY_MODEL),
-        (sci, test, init.SCIENCE_MODEL),
-        (oth, test, init.OTHER_MODEL)
-    ]
     predicted = init.parallel(predict, parameters, mode='starmap')
 
-    uni, sci, oth = pandas.concat((predicted[0].rename('prediction'),
-                                   test[['category', 'url', 'root']].reset_index(drop=True)), axis=1), \
-                    pandas.concat((predicted[1].rename('prediction'),
-                                   test[['category', 'url', 'root']].reset_index(drop=True)), axis=1), \
-                    pandas.concat((predicted[2].rename('prediction'),
-                                   test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
-
-    # parameters = [
-    #     (init.UNIVERSITY_PREDICTED, uni),
-    #     (init.SCIENCE_PREDICTED, sci),
-    #     (init.OTHER_PREDICTED, oth)
-    # ]
-    # init.parallel(init.get_output, parameters, mode='starmap')
     writer = pandas.ExcelWriter(init.EXCEL)
-    uni.to_excel(writer, init.UNIVERSITY_CATEGORY)
-    sci.to_excel(writer, init.SCIENCE_CATEGORY)
-    oth.to_excel(writer, init.OTHER_CATEGORY)
-    results = assert_class_to_root([uni, sci, oth])
+    for i in range(len(init.CATEGORIES)):
+        categories[i] = pandas.concat((predicted[i].rename('prediction'),
+                                       test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
+        categories[i].to_excel(writer, init.CATEGORIES[i])
+
+    results = assert_class_to_root(categories)
     results = pandas.merge(results, roots[['root', 'category']], on='root')
     pprint(accuracy_score(results.category, results.prediction))
     results.to_excel(writer, 'results')

@@ -23,19 +23,20 @@ except OSError as e:
 init.adblock()
 
 # Get all urls from .txt to array of strings
-children_count, categories = init.from_file(init.TEST)  # init.URLS for all urls, init.TEST for test set
+# init.URLS for default dataset, init.TEST for tests
+children_count, initial_data, init.CATEGORIES = init.from_file(init.ROMIP)
 
 # Results of scraping: 'url', 'type', 'text'
-categories['url'] = init.parallel(scraper.get_actual_url, categories['url'], mode='map')
-categories.to_csv('data/init.csv', sep=',', encoding='utf-8', index=False)
+initial_data['url'] = init.parallel(scraper.get_actual_url, initial_data['url'], mode='map')
+initial_data.to_csv(init.DATA_PREFIX + 'init.csv', sep=',', encoding='utf-8', index=False)
 
-roots = categories.copy()
+roots = initial_data.copy()
 roots = roots.dropna(subset=['url']).reset_index(drop=True)
 roots['root'] = init.parallel(manager.get_root, roots['url'], mode='map')
 roots['children'] = children_count
 roots = roots.drop(columns=['url'])
 
-queue = categories.copy()
+queue = initial_data.copy()
 queue = queue.dropna(subset=['url']).reset_index(drop=True)
 queue['root'] = init.parallel(manager.get_root, queue['url'], mode='map')
 queue['status'] = '-'
