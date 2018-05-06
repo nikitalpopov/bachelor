@@ -179,7 +179,7 @@ def scrape(url, queue, roots):
         :param roots:
         :return result:
     """
-    print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
     queue.loc[queue['url'] == url, 'status'] = '+'
     root = get_root(url)
     if len(roots.loc[roots[roots.root == root].index, "children"] > 0) == 1 and \
@@ -197,7 +197,7 @@ def fix(child, roots):
         :param roots:
         :return result:
     """
-    print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
+    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
     link, root_url = child
     root = get_root(root_url)
     if len(roots[roots.root == root].children > 0) == 1 and (roots[roots.root == root].children > 0).values[0]:

@@ -14,9 +14,9 @@ from pprint import pprint
 
 
 def get_actual_url(url):
-    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), url)
     try:
         r = requests.get(url, timeout=100)
+        print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), str(r.status_code), url)
     except:
         return None
 
@@ -41,8 +41,8 @@ def parse_url(url):
     except:
         return {'url': None, 'type': None, 'text': None, 'children': None, 'meta': None, 'title': None}
 
-    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
-    #       fg(2) + str(response.status_code) + attr(0), actual_url)
+    print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
+          fg(2) + str(response.status_code) + attr(0), actual_url)
 
     if browser.get_current_page() and response.status_code < 400:
         webpage = browser.get_current_page()
