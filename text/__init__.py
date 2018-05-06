@@ -61,20 +61,23 @@ def clear_text(text):
     return text
 
 
-def tokenization(dataframe, csv_file, is_test=False):
-    out_csv = csv.writer(open(csv_file, "w", encoding='utf-8'))
-    out_csv.writerow(['url', 'predicted' if is_test else 'category', 'tokens'])
-
+def tokenization(dataframe, csv_file=None, is_test=False):
     morph = pymorphy2.MorphAnalyzer()
     for i in range(dataframe.shape[0]):
-        url = dataframe.iloc[i]['url']
-        cat = dataframe.iloc[i]['category'] if not is_test else []
-        z = dataframe.iloc[i]['text']
+        dataframe.iloc[i]['text'] = my_tokenizer(dataframe.iloc[i]['text'], morph)
+    # out_csv = csv.writer(open(csv_file, "w", encoding='utf-8'))
+    # out_csv.writerow(['url', 'predicted' if is_test else 'category', 'tokens'])
 
-        if type(z) == str:
-            out_csv.writerow((url, cat, my_tokenizer(z, morph)))
-        else:
-            out_csv.writerow((url, cat, []))
+    # morph = pymorphy2.MorphAnalyzer()
+    # for i in range(dataframe.shape[0]):
+    #     url = dataframe.iloc[i]['url']
+    #     cat = dataframe.iloc[i]['category'] if not is_test else []
+    #     z = dataframe.iloc[i]['text']
+
+    #     if type(z) == str:
+    #         out_csv.writerow((url, cat, my_tokenizer(z, morph)))
+    #     else:
+    #         out_csv.writerow((url, cat, []))
 
 
 def my_tokenizer(s, morph):
@@ -200,6 +203,7 @@ def parse_text(dataframe, input, output, engine='pymorphy'):
     else:
         # translated.text = clear_text(translated.text)
         dataframe.text = clear_text(dataframe.text)
+        tokenization(dataframe)
     dataframe.to_excel(writer, 'tokens')
     dataframe.to_csv(output, sep=',', encoding='utf-8')
 

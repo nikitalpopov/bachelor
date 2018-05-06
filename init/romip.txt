@@ -1,30 +1,21 @@
-10
-train automobile http://www.akkc.ru/
+20
 train automobile http://www.r-tires.ru/
 train automobile http://www.autoshina.ru/
-train automobile http://www.autostop.nnov.ru/
 train automobile http://www.autoins.ru/
 train automobile http://www.auto.ru/
 train automobile http://www.autonet.ru/
 train automobile http://auto-show.narod.ru/
 train automobile http://www.autonews.ru/
-train automobile http://www.auto-expert.ru/
 train automobile http://www.nymm.ru/
-train automobile http://www.hella.com.ua/
+test automobile http://www.hella.com.ua/
 test automobile http://www.afm.ru/
-test automobile http://insure.auto.ru/
 train it http://www.rusintel.ru/
 train it http://softmajor.ru/
-train it http://petronet.h1.ru/
 test it http://www.pll.ru/
-train kitchen http://www.azeri.ru/
-train kitchen http://woman.inc.by/
 train kitchen http://wals.narod.ru/
 train kitchen http://www.easy-cooking-club.com/
-train kitchen http://www.cookery.ru/
 train kitchen http://www.soyka.ru/
 train kitchen http://www.nevestushka.ru/
-test kitchen http://kulinar.agava.ru/
 test kitchen http://www.s8s.ru/
 train garden http://www.violet-slava.ru/
 train garden http://www.forest.ru/
@@ -34,13 +25,8 @@ train garden http://yadflora.hotbox.ru/
 train garden http://garden.academic.ru/
 train garden http://azarushkin.narod.ru/
 train garden http://www.6x100.ru/
-train garden http://lilium.report.ru/
-train garden http://rosesite.narod.ru/
 train garden http://www.cactusomania.ru/
-train garden http://flower.x-lab.ru/
 test garden http://www.senpolia.ru/
-test garden http://plants.onweb.ru/
-test garden http://www.technosad.ru/
 train pets http://www.bullterrier.kiev.ua/
 train pets http://www.aquariumist.com.ua/
 train pets http://mybirds.ru/
@@ -50,8 +36,6 @@ train pets http://www.chris.ru/
 train pets http://aquarium.kulichki.net/
 train pets http://www.ifc.ru/
 train pets http://our-aquarium.narod.ru/
-train pets http://borovsky.boom.ru/
-train pets http://cat-gallery.narod.ru/
 train pets http://www.unigo.ru/
 train pets http://aqualuxe.narod.ru/
 test pets http://www.aquaserg.ru/
@@ -64,9 +48,7 @@ train medicine http://www.bakulev.ru/
 train medicine http://www.medicare.ru/
 train medicine http://www.phlebology.ru/
 train medicine http://www.medana.ru/
-train medicine http://herbage.narod.ru/
 train medicine http://www.euromedserv.ru/
 train medicine http://www.ursula.ru/
-test medicine http://www.femaletantrayoga.ru/
 test medicine http://www.medcryonika.ru/
 test medicine http://www.frolova.deol.ru/
