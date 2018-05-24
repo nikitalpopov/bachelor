@@ -61,10 +61,7 @@ def clear_text(text):
     return text
 
 
-def tokenization(dataframe, csv_file=None, is_test=False):
-    morph = pymorphy2.MorphAnalyzer()
-    for i in range(dataframe.shape[0]):
-        dataframe.iloc[i]['text'] = my_tokenizer(dataframe.iloc[i]['text'], morph)
+# def tokenization(dataframe, csv_file=None, is_test=False):
     # out_csv = csv.writer(open(csv_file, "w", encoding='utf-8'))
     # out_csv.writerow(['url', 'predicted' if is_test else 'category', 'tokens'])
 
@@ -184,7 +181,7 @@ def translate(translater, dataframe, writer, output):
     dataframe.to_csv(output, sep=',', encoding='utf-8')
 
 
-def parse_text(dataframe, input, output, engine='pymorphy'):
+def parse_text(dataframe, input, output):
     # nltk.download('punkt')
     writer = pandas.ExcelWriter(init.DATA_PREFIX + 'data.xlsx')
     dataframe.to_excel(writer, 'train')
@@ -198,12 +195,15 @@ def parse_text(dataframe, input, output, engine='pymorphy'):
     # translator.set_hint('ru', 'en')
     # translate(translator, dataframe.copy(), writer, 'data/translated.csv')
 
-    if engine == 'nltk':
-        pass
-    else:
-        # translated.text = clear_text(translated.text)
-        dataframe.text = clear_text(dataframe.text)
-        tokenization(dataframe)
+    morph = pymorphy2.MorphAnalyzer()
+    for column in ['text', 'title', 'meta']:
+        dataframe[column] = clear_text(dataframe[column]).apply(lambda x: my_tokenizer(x, morph))
+    # dataframe.text = clear_text(dataframe.text)
+    # dataframe.title = clear_text(dataframe.title)
+    # dataframe.meta = clear_text(dataframe.meta)
+    # dataframe.text = dataframe.text.apply(lambda x: my_tokenizer(x, morph))
+    # dataframe.title = dataframe.title.apply(lambda x: my_tokenizer(x, morph))
+    # dataframe.meta = dataframe.meta.apply(lambda x: my_tokenizer(x, morph))
     dataframe.to_excel(writer, 'tokens')
     dataframe.to_csv(output, sep=',', encoding='utf-8')
 

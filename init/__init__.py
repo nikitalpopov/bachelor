@@ -1,6 +1,8 @@
 import os
 import pandas
 import platform
+import plotly.plotly as py
+import plotly.graph_objs as go
 import requests
 from colored import fg, attr
 from datetime import datetime
@@ -45,6 +47,18 @@ def parallel(func, parameters, mode='map', threads=cpu_count() - 1):
     return results
 
 
+def flatten(nested_list):
+    """Flatten nested list
+        :param nested_list:
+        :return nested_list:
+    """
+    if not nested_list:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten(nested_list[0]) + flatten(nested_list[1:])
+    return nested_list[:1] + flatten(nested_list[1:])
+
+
 def from_file(file):
     """Get initial data from file
         :param file: path to .txt file
@@ -76,6 +90,68 @@ def get_output(output, results):
     except:
         print(fg(1) + 'something wrong with init.get_output()' + attr(0))
 
+
+def confusion_matrix(output, confusion_matrix):
+    confusion_matrix = 100. * confusion_matrix / confusion_matrix.sum()
+    trace = go.Heatmap(z=confusion_matrix,
+                       x=CATEGORIES,
+                       y=CATEGORIES,
+                       colorscale='Blues')
+    data = [trace]
+    annotations = flatten(
+        [
+            [{
+                "x": j,
+                "y": i,
+                "font": {
+                    "color": "rgb(255, 255, 255)",
+                    "size": 15
+                },
+                "showarrow": False,
+                "text": "%.3f" % confusion_matrix[i][j],
+                "xref": "x",
+                "yref": "y"
+            } for i in range(len(CATEGORIES))
+            ] for j in range(len(CATEGORIES))
+        ]
+    )
+    layout = go.Layout(
+        title="confusion matrix",
+        autosize=True,
+        dragmode="pan",
+        hovermode="closest",
+        showlegend=False,
+        xaxis={
+            "autorange": True,
+            "exponentformat": "none",
+            "range": [-0.5, len(CATEGORIES) - 0.5],
+            "showgrid": True,
+            "showline": True,
+            "showspikes": False,
+            "showticklabels": True,
+            "side": "bottom",
+            "tickmode": "auto",
+            "ticks": "outside",
+            "title": "predicted value",
+            "type": "category"
+        },
+        yaxis={
+            "autorange": True,
+            "range": [-0.5, len(CATEGORIES) - 0.5],
+            "showspikes": False,
+            "title": "true value",
+            "type": "category"
+        },
+        annotations=annotations
+    )
+    fig = go.Figure(data=data, layout=layout)
+    py.image.save_as(fig, filename=DATA_PREFIX + output)
+
+    return
+
+
+PLOTLY = {'username': 'nikitalpopov',
+          'api_key': 'RfIZTYe9ndj6humMGTzX'}
 
 INIT_TIME = datetime.now()
 INIT_PREFIX = 'init/'

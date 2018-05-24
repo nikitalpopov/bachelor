@@ -149,7 +149,16 @@ def fix_url(url, root):
                     # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
                     return None
             else:  # 'link'
-                if validate_url(root + url):
+                if url.startswith('./'):  # '/link'
+                    if validate_url(root + url[2:]):
+                        # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
+                        #       fg(2) + root[:-1] + url + attr(0))
+                        return root[:-1] + url
+                    else:
+                        # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
+                        #       fg(1) + 'invalid' + attr(0))
+                        return None
+                elif validate_url(root + url):
                     # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(2) + root + url + attr(0))
                     return root + url
                 else:
@@ -158,18 +167,6 @@ def fix_url(url, root):
         else:
             # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg(1) + 'invalid' + attr(0))
             return None
-
-
-def flatten(nested_list):
-    """Flatten nested list
-        :param nested_list:
-        :return nested_list:
-    """
-    if not nested_list:
-        return nested_list
-    if isinstance(nested_list[0], list):
-        return flatten(nested_list[0]) + flatten(nested_list[1:])
-    return nested_list[:1] + flatten(nested_list[1:])
 
 
 def scrape(url, queue, roots):

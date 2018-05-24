@@ -7,13 +7,55 @@ from pprint import pprint
 import scipy.sparse
 # from sklearn.feature_extraction.text import CountVectorizer
 # from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import HashingVectorizer
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.svm import LinearSVC
+
+
+class ItemSelector(BaseEstimator, TransformerMixin):
+    """For data grouped by feature, select subset of data at a provided key.
+
+    The data is expected to be stored in a 2D data structure, where the first
+    index is over features and the second is over samples.  i.e.
+
+    >> len(data[key]) == n_samples
+
+    Please note that this is the opposite convention to scikit-learn feature
+    matrixes (where the first index corresponds to sample).
+
+    ItemSelector only requires that the collection implement getitem
+    (data[key]).  Examples include: a dict of lists, 2D numpy array, Pandas
+    DataFrame, numpy record array, etc.
+
+    >> data = {'a': [1, 5, 2, 5, 2, 8],
+               'b': [9, 4, 1, 4, 1, 3]}
+    >> ds = ItemSelector(key='a')
+    >> data['a'] == ds.transform(data)
+
+    ItemSelector is not designed to handle data grouped by sample.  (e.g. a
+    list of dicts).  If your data is structured this way, consider a
+    transformer along the lines of `sklearn.feature_extraction.DictVectorizer`.
+
+    Parameters
+    ----------
+    key : hashable, required
+        The key corresponding to the desired value in a mappable.
+    """
+    def __init__(self, key):
+        self.key = key
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, data):
+        pprint(self.key)
+        pprint(data[self.key])
+        return data[self.key]
 
 
 def predict(train, test, model):
@@ -22,43 +64,31 @@ def predict(train, test, model):
         :param test:
         :param model:
     """
+    pipeline = Pipeline([
+        ('union', FeatureUnion(
+            transformer_list=[
+                ('text', Pipeline([
+                    ('selector', ItemSelector(key='text')),
+                    ('hasher', HashingVectorizer(n_features=2**16)),
+                ])),
+                ('title', Pipeline([
+                    ('selector', ItemSelector(key='title')),
+                    ('hasher', HashingVectorizer(n_features=2**16)),
+                ])),
+                ('meta', Pipeline([
+                    ('selector', ItemSelector(key='meta')),
+                    ('hasher', HashingVectorizer(n_features=2**16)),
+                ]))
+            ],
+        )),
+        ('svc', LinearSVC()),
+    ])
+    pipeline.fit(train, train.category)
+    joblib.dump(pipeline, model)
+    tst = pipeline.predict(test)
+    result = pandas.Series(tst)
 
-    def get_text(train):
-        coder = HashingVectorizer()
-        result = coder.fit_transform(train.text)
-        print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
-        pprint(result)
-
-        return result
-
-    def get_depth(train):
-        result = train.depth
-        print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
-        pprint(result)
-
-        return result
-
-    # classifier = Pipeline([
-    #     ('features', FeatureUnion([
-    #         ('text', FunctionTransformer(get_text, validate=False)),
-    #         ('depth', FunctionTransformer(get_depth, validate=False))
-    #     ])),
-    #     ('clf', LinearSVC())
-    # ])
-    #
-    # classifier.fit(train, train.category)
-    # predicted = classifier.predict(test)
-    # pprint(predicted)
-
-    coder = HashingVectorizer()
-    trn = coder.fit_transform(train.text)
-    # trn = scipy.sparse.hstack([trn, train.depth])
-    clf = LinearSVC().fit(trn, train.category)
-    joblib.dump(clf, model)
-    tst = coder.transform(test.text.values.astype('U'))
-    clf = joblib.load(model)
-
-    return pandas.Series(clf.predict(tst))
+    return result
 
 
 def assert_class_to_root(dataframes):
@@ -86,13 +116,13 @@ def classify(dataframe, roots):
     validate = dataframe.loc[dataframe['purpose'].isin(['validate'])].copy()
     test = dataframe.loc[dataframe['purpose'].isin(['test'])].copy()
 
-    categories = []
-    parameters = []
-    for i in range(len(init.CATEGORIES)):
-        df = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-        df.loc[df['category'] != init.CATEGORIES[i], 'category'] = 'unclassified'
-        categories.append(df)
-        parameters.append((df, test, init.DATA_PREFIX + init.CATEGORIES[i] + '.pkl'))
+    # categories = []
+    # parameters = []
+    # for i in range(len(init.CATEGORIES)):
+    #     df = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
+    #     df.loc[df['category'] != init.CATEGORIES[i], 'category'] = 'unclassified'
+    #     categories.append(df)
+    #     parameters.append((df, test, init.DATA_PREFIX + init.CATEGORIES[i] + '.pkl'))
 
     # experiment = Experiment(api_key="Dmqg0JpLWqa5lmzvpbcDObE9A")
     # predicted = init.parallel(predict, parameters, mode='starmap')
@@ -112,12 +142,19 @@ def classify(dataframe, roots):
     # results = pandas.merge(results, roots[['root', 'category']], on='root')
     categories = pandas.concat((predicted.rename('prediction'),
                                 test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
-    # pprint(categories)
-    # input('Continue?..')
     categories.to_excel(writer, 'prediction')
     results = assert_class_to_root(categories)
     results = pandas.merge(results, roots[['root', 'category']], on='root')
     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0),
           'accuracy score: {}'.format(accuracy_score(results.category, results.prediction)))
+
+    y_true = pandas.Series(results.category)
+    y_pred = pandas.Series(results.prediction)
+
+    print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0))
+    pprint(pandas.crosstab(y_true, y_pred, rownames=['True'], colnames=['Predicted'], margins=True)
+           .apply(lambda r: 100.0 * r / r.sum()))
+    init.confusion_matrix('confusion_matrix.png',
+                          confusion_matrix(results.category, results.prediction, labels=init.CATEGORIES))
     results.to_excel(writer, 'results')
     # init.get_output(init.RESULTS, results)

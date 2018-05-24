@@ -65,8 +65,11 @@ def parse_url(url):
         # remover = AdRemover(*['data/' + rule.rsplit('/', 1)[-1] for rule in init.ADBLOCK_RULES])
         # try:
         #     html = requests.get(url).text
-        #     document = lxml.html.document_fromstring(html)
-        #     remover.remove_ads(document)
+        #     if html:
+        #         document = lxml.html.document_fromstring(html)
+        #         remover.remove_ads(document)
+        #     else:
+        #         return {'url': actual_url, 'type': 0, 'text': '', 'children': [], 'meta': '', 'title': ''}
         #     clean_html = tostring(document).decode("utf-8")
         #     webpage = BeautifulSoup(clean_html, 'lxml')
         # except ValueError:
@@ -75,6 +78,9 @@ def parse_url(url):
         # except TypeError:
         #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
         #     print('TypeError')
+        # except:
+        #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
+        #     print('Some error')
 
         # Remove all comments
         for comments in webpage.findAll(text=lambda text: isinstance(text, Comment)):
@@ -84,10 +90,16 @@ def parse_url(url):
         for script in webpage(['script', 'style']):
             script.extract()  # rip it out
 
-        if webpage.find('meta') is not None:
-            meta = webpage.find('meta')
-        if webpage.find('title') is not None:
-            title = webpage.find('title').text
+        # temp = webpage.find('meta')
+        for tag in webpage.find_all("meta"):
+            if tag is not None:
+                try:
+                    meta = ' '.join([meta, tag['content'], tag['keywords'], tag['description']])
+                except KeyError:
+                    pass
+        temp = webpage.find('title')
+        if temp is not None:
+            title = temp.text
         body = webpage.find('body')
         page_text = webpage.get_text(" ")
 
