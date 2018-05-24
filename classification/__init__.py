@@ -1,19 +1,13 @@
 import init
 import pandas
 from colored import fg, attr
-from comet_ml import Experiment
 from datetime import datetime
 from pprint import pprint
-import scipy.sparse
-# from sklearn.feature_extraction.text import CountVectorizer
-# from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import FunctionTransformer
 from sklearn.svm import LinearSVC
 
 
@@ -92,18 +86,6 @@ def predict(train, test, model):
 
 
 def assert_class_to_root(dataframes):
-    # classes = pandas.DataFrame(columns=['root', 'prediction', 'count'])
-    # for dataframe in dataframes:
-    #     classes = pandas.concat(
-    #         [classes, dataframe.groupby(['root', 'prediction'])['root'].size().reset_index(name='count')],
-    #         axis=0, ignore_index=True).reset_index(drop=True)
-    # result = classes.groupby(['root']).head(1).reset_index(drop=True)
-    # classes = pandas.concat(
-    #     [classes, dataframes.groupby(['root', 'prediction'])['root'].size().reset_index(name='count')],
-    #     axis=0, ignore_index=True).reset_index(drop=True)
-    #
-    # result = classes.groupby(['root']).head(1).reset_index(drop=True)
-    # result = classes[classes['prediction'] != 'unclassified'].groupby(['root']).head(1).reset_index(drop=True)
     dataframes = dataframes.groupby(['root', 'prediction'])['root']\
         .count().reset_index(name='count').sort_values(['count'], ascending=False)
     result = dataframes.groupby(['root']).head(1).reset_index(drop=True)
@@ -113,33 +95,11 @@ def assert_class_to_root(dataframes):
 
 def classify(dataframe, roots):
     train = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    validate = dataframe.loc[dataframe['purpose'].isin(['validate'])].copy()
     test = dataframe.loc[dataframe['purpose'].isin(['test'])].copy()
 
-    # categories = []
-    # parameters = []
-    # for i in range(len(init.CATEGORIES)):
-    #     df = dataframe.loc[~dataframe['purpose'].isin(['test'])].copy()
-    #     df.loc[df['category'] != init.CATEGORIES[i], 'category'] = 'unclassified'
-    #     categories.append(df)
-    #     parameters.append((df, test, init.DATA_PREFIX + init.CATEGORIES[i] + '.pkl'))
-
-    # experiment = Experiment(api_key="Dmqg0JpLWqa5lmzvpbcDObE9A")
-    # predicted = init.parallel(predict, parameters, mode='starmap')
-
     predicted = predict(train, test, init.DATA_PREFIX + 'model.pkl')
-    # pprint(predicted)
 
     writer = pandas.ExcelWriter(init.EXCEL)
-    # for i in range(len(init.CATEGORIES)):
-    #     categories[i] = pandas.concat((predicted[i].rename('prediction'),
-    #                                    test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
-    #     categories[i].to_excel(writer, init.CATEGORIES[i])
-
-    # print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), 'categories')
-    # pprint(categories)
-    # results = assert_class_to_root(categories)
-    # results = pandas.merge(results, roots[['root', 'category']], on='root')
     categories = pandas.concat((predicted.rename('prediction'),
                                 test[['category', 'url', 'root']].reset_index(drop=True)), axis=1)
     categories.to_excel(writer, 'prediction')
@@ -157,4 +117,4 @@ def classify(dataframe, roots):
     init.confusion_matrix('confusion_matrix.png',
                           confusion_matrix(results.category, results.prediction, labels=init.CATEGORIES))
     results.to_excel(writer, 'results')
-    # init.get_output(init.RESULTS, results)
+    init.get_output(init.RESULTS, results)

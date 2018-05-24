@@ -14,8 +14,8 @@ from pprint import pprint
 
 title = '🛠 bachelor [' + str(os.getpid()) + ']'
 message = 'initializing data...'
-# init.URLS for default dataset, init.TEST for tests, init.ROMIP for ROMIP test data
-dataset = init.URLS
+# init.URLS for default dataset, init.TEST for tests
+dataset = init.TEST
 begin = datetime.now()
 init.notify(title, message)
 try:

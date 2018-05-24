@@ -8,7 +8,6 @@ from colored import fg, attr
 from datetime import datetime
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool as ThreadPool
-from pprint import pprint
 
 
 def notify(title, text, subtitle='', sound='Glass'):
@@ -47,18 +46,6 @@ def parallel(func, parameters, mode='map', threads=cpu_count() - 1):
     return results
 
 
-def flatten(nested_list):
-    """Flatten nested list
-        :param nested_list:
-        :return nested_list:
-    """
-    if not nested_list:
-        return nested_list
-    if isinstance(nested_list[0], list):
-        return flatten(nested_list[0]) + flatten(nested_list[1:])
-    return nested_list[:1] + flatten(nested_list[1:])
-
-
 def from_file(file):
     """Get initial data from file
         :param file: path to .txt file
@@ -82,9 +69,6 @@ def adblock():
 
 
 def get_output(output, results):
-    """Write to .csv file and print results"""
-    # print(fg('blue') + '[' + datetime.now().time() + ']' + attr(0), fg(2) + 'Predicted' + attr(0))
-    # pprint(results)
     try:
         results.to_csv(output, sep=',', encoding='utf-8')
     except:
@@ -161,7 +145,6 @@ CATEGORIES = []
 
 URLS = INIT_PREFIX + 'urls.txt'
 TEST = INIT_PREFIX + 'test.txt'
-ROMIP = INIT_PREFIX + 'romip.txt'
 
 TRAIN_DATA = DATA_PREFIX + 'train_data.csv'
 TRAIN_TOKENS = DATA_PREFIX + 'train_tokens.csv'

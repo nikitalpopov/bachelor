@@ -5,12 +5,10 @@ import lxml.html
 import mechanicalsoup
 import requests
 from adblock import AdRemover
-from bs4 import Comment
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from colored import fg, attr
 from datetime import datetime
 from lxml.etree import tostring
-from pprint import pprint
 
 
 def get_actual_url(url):
@@ -61,26 +59,26 @@ def parse_url(url):
     title = ''
 
     if ("text/html" in response.headers["content-type"]) and webpage:
-        # # Remove ads
-        # remover = AdRemover(*['data/' + rule.rsplit('/', 1)[-1] for rule in init.ADBLOCK_RULES])
-        # try:
-        #     html = requests.get(url).text
-        #     if html:
-        #         document = lxml.html.document_fromstring(html)
-        #         remover.remove_ads(document)
-        #     else:
-        #         return {'url': actual_url, 'type': 0, 'text': '', 'children': [], 'meta': '', 'title': ''}
-        #     clean_html = tostring(document).decode("utf-8")
-        #     webpage = BeautifulSoup(clean_html, 'lxml')
-        # except ValueError:
-        #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
-        #     print('ValueError')
-        # except TypeError:
-        #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
-        #     print('TypeError')
-        # except:
-        #     print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
-        #     print('Some error')
+        # Remove ads
+        remover = AdRemover(*['data/' + rule.rsplit('/', 1)[-1] for rule in init.ADBLOCK_RULES])
+        try:
+            html = requests.get(url).text
+            if html:
+                document = lxml.html.document_fromstring(html)
+                remover.remove_ads(document)
+            else:
+                return {'url': actual_url, 'type': 0, 'text': '', 'children': [], 'meta': '', 'title': ''}
+            clean_html = tostring(document).decode("utf-8")
+            webpage = BeautifulSoup(clean_html, 'lxml')
+        except ValueError:
+            print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
+            print('ValueError')
+        except TypeError:
+            print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
+            print('TypeError')
+        except:
+            print(fg('blue') + '[' + str(datetime.now().time()) + ']' + attr(0), fg('red') + url + attr(0))
+            print('Some error with removing ads')
 
         # Remove all comments
         for comments in webpage.findAll(text=lambda text: isinstance(text, Comment)):
@@ -129,8 +127,6 @@ def parse_url(url):
             page_text = []
             page_type = 0
         page_text = ' '.join(page_text)
-
-        # pprint(page_text)
 
     result = {
         'url':      actual_url,
