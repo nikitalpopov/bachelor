@@ -58,7 +58,7 @@ requests == 2.18.4
 # classification/__init__.py: 7
 scipy == 1.1.0
 
-# classification/__init__.py: 14,15,16
+# classification/__init__.py: 15,16,17
 sklearn == 0.0
 
 # text/__init__.py: 13
