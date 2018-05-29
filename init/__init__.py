@@ -75,6 +75,18 @@ def get_output(output, results):
         print(fg(1) + 'something wrong with init.get_output()' + attr(0))
 
 
+def flatten(nested_list):
+    """Flatten nested list
+        :param nested_list:
+        :return nested_list:
+    """
+    if not nested_list:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten(nested_list[0]) + flatten(nested_list[1:])
+    return nested_list[:1] + flatten(nested_list[1:])
+
+
 def confusion_matrix(output, confusion_matrix):
     confusion_matrix = 100. * confusion_matrix / confusion_matrix.sum()
     trace = go.Heatmap(z=confusion_matrix,
