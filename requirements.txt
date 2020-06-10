@@ -30,7 +30,7 @@ ftfy == 5.3.0
 lxml == 4.2.1
 
 # text/__init__.py: 3,10
-nltk == 3.3
+nltk == 3.4.5
 
 # main.py: 7
 # manager/__init__.py: 4
