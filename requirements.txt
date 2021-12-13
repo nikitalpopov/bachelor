@@ -27,7 +27,7 @@ ftfy == 5.3.0
 
 # adblock/__init__.py: 7
 # scraper/__init__.py: 4,12
-lxml == 4.6.3
+lxml == 4.6.5
 
 # text/__init__.py: 3,10
 nltk == 3.4.5
