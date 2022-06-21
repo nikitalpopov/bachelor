@@ -34,7 +34,7 @@ nltk == 3.4.5
 
 # main.py: 7
 # manager/__init__.py: 4
-numpy == 1.14.3
+numpy == 1.22.0
 
 # classification/__init__.py: 2
 # init/__init__.py: 2
