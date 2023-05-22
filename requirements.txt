@@ -53,7 +53,7 @@ pymorphy2 == 0.8
 # init/__init__.py: 6
 # manager/__init__.py: 6
 # scraper/__init__.py: 6
-requests == 2.20.0
+requests == 2.31.0
 
 # classification/__init__.py: 7
 scipy == 1.1.0
